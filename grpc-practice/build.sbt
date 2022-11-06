@@ -19,6 +19,5 @@ libraryDependencies ++= Seq(
   "org.scalamock" %% "scalamock" % "5.1.0" % Test,
   "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion,
   "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion,
-  "io.grpc" % "grpc-stub" % scalapb.compiler.Version.grpcJavaVersion,
-  "com.thesamet.scalapb" %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
+  "io.grpc" % "grpc-stub" % scalapb.compiler.Version.grpcJavaVersion
 )
