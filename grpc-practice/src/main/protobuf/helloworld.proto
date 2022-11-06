@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package com.example.protos;
+package io.grpc.examples.helloworld;
 
 // The greeting service definition.
 service Greeter {
