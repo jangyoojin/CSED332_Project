@@ -1,6 +1,9 @@
 package module
 
+import java.io.File
 import network.WorkerMeta
+
+import java.net.InetAddress
 
 object Parser {
   def parse(args: Array[String]): WorkerMeta = {
@@ -13,9 +16,15 @@ object Parser {
     // args(-2) 는 "-O" 여야 함
     val outputDirPath = args(args.length - 1)
 
+    val outputDir = new File(outputDirPath)
+
+    if (!outputDir.exists) {
+      outputDir.mkdir()
+    }
+
     val masterIP = masterIPPort.split(":")(0)
     val masterPort = masterIPPort.split(":")(1).toInt
 
-    new WorkerMeta(inputDirPaths, outputDirPath, masterIP, masterPort, "123.456.789")
+    new WorkerMeta(inputDirPaths, outputDirPath, masterIP, masterPort, InetAddress.getLocalHost.getHostAddress)
   }
 }
