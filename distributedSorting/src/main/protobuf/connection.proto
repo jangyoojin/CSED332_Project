@@ -1,0 +1,82 @@
+syntax="proto3";
+
+package message ;
+import "utils.proto";
+
+message StartRequest
+{
+  string ip = 1; //worker connect to server's IP
+  int32  port = 2; //worker connect to server between port
+
+}
+
+message StartResponse
+{
+  int32 workerId = 1; //master give workerID to worker
+}
+
+message SampleRequest
+{
+  int32 workerId = 1; //workerId
+  int32 inputFileNum = 2; //worker's inputFileNum
+  bytes data= 3; // sampling data
+
+}
+
+message SampleResponse
+{
+  Stat status = 1; //check sample is arriving at server or not
+}
+
+message DivideRequest
+{
+  int32 workerId = 1; // worker send workerId
+}
+
+message DivideResponse
+{
+  Stat status = 1; //check request is arriving at server or not;
+  int32 workerNum = 2; //to let know worker's range
+  repeated workerInfo workers = 3; //send info of all workers
+
+}
+
+message StartShuffleRequest
+{
+  int32 workerId = 1;
+}
+
+message StartShuffleResponse
+{
+  Stat status = 1;
+}
+
+
+message SortRequest
+{
+  int32 workerId = 1;
+}
+
+message SortResponse
+{
+  Stat status = 1;
+}
+
+message TerminateRequest
+{
+  int32 workerId = 1;
+}
+
+message TerminateResponse
+{}
+
+service Connection
+{
+  rpc Start(StartRequest) returns (StartResponse);
+  rpc Sample(SampleRequest) returns (SampleResponse);
+  rpc Divide(DivideRequest) returns (DivideResponse);
+  rpc StartShuffle(StartShuffleRequest) returns (StartShuffleResponse);
+  rpc Sort(SortRequest) returns (SortResponse);
+  rpc Terminate(TerminateRequest) returns (TerminateResponse);
+
+}
