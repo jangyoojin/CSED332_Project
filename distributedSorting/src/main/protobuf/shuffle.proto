@@ -1,0 +1,21 @@
+syntax = "proto3";
+package message;
+import "utils.proto";
+
+
+message FileRequest
+{
+  int32 workerId = 1;
+  int32 partitionId = 2;
+  bytes data =3;
+}
+
+message FileResponse
+{
+  Stat status = 1;
+}
+
+service Shuffle
+{
+  rpc Shuffle(stream FileRequest) returns (FileResponse);
+}

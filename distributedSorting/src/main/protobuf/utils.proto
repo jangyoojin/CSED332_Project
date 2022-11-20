@@ -1,0 +1,26 @@
+syntax ="proto3";
+package message;
+
+enum Stat
+{
+  NOT_RECEIVED = 0;
+  PROCESSING = 1;
+  SUCCESS = 2;
+  FAILURE = 3;
+
+}
+
+message workerRange
+{
+  int32 lower=1;
+  int32 upper =2;
+}
+
+message workerInfo
+{
+  int32 workerId =1;
+  string ip =2;
+  int32 port = 3;
+  workerRange mainRange = 4;
+  repeated workerRange subRange = 5;
+}
