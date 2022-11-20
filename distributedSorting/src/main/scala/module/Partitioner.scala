@@ -11,8 +11,16 @@ object Partitioner {
       inputDirPath <- inputDirPaths
       (file, i) <- getFileList(inputDirPath).zipWithIndex
     } {
-      val filenameTail = "-From-" + i
       partitionIntoRanges(file.getPath, partitionDirPath + "/partition-", "-" + i,partitioningPoints)
+    }
+  }
+
+  def subPartition(inputDirPath: String, subPartitionDirPath: String, subPartitioningPoints: Seq[(String, String)]): Any = {
+    for {
+      file <- getFileList(inputDirPath)
+    } {
+      val indexingSubPartitioningPoints = for ((r, i)<-subPartitioningPoints.zipWithIndex.toMap) yield (i, r)
+      partitionIntoRanges(file.getPath, subPartitionDirPath + "/output.", "", indexingSubPartitioningPoints)
     }
   }
 
