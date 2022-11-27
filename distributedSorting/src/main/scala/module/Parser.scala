@@ -1,12 +1,12 @@
 package module
 
 import java.io.File
-import network.WorkerMeta
+import network.ClientMeta
 
 import java.net.InetAddress
 
 object Parser {
-  def parse(args: Array[String]): WorkerMeta = {
+  def parse(args: Array[String]): ClientMeta = {
 
     val masterIPPort = args(0)
 
@@ -25,6 +25,6 @@ object Parser {
     val masterIP = masterIPPort.split(":")(0)
     val masterPort = masterIPPort.split(":")(1).toInt
 
-    new WorkerMeta(inputDirPaths, outputDirPath, masterIP, masterPort, InetAddress.getLocalHost.getHostAddress)
+    new ClientMeta(inputDirPaths, outputDirPath, masterIP, masterPort, InetAddress.getLocalHost.getHostAddress)
   }
 }

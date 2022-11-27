@@ -1,6 +1,6 @@
 package network
 
-class WorkerMeta (
+class ClientMeta (
                    val inputDirPaths: Seq[String],
                    val outputDirPath: String,
                    val masterIP: String,
