@@ -18,6 +18,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
   var state: MasterState
 
   def start(): Unit = {
-    server = ServerBuil
+    server = ServerBuilder.forPort(port)
+      .addService(ConnectionGrpc)
   }
 }
