@@ -8,6 +8,8 @@ import scala.concurrent.ExecutionContext.Implicits.global //Future가 비동기�
 import io.grpc.{Server, ServerBuilder, Status}
 import io.grpc.stub.StreamObserver
 
+import utils._
+
 class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int) { self =>
   require(workerNum > 0, "The number of worker must be positive")
 
@@ -15,10 +17,9 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
   logger.setLevel(loggerLevel.level)
 
   var server: Server = null
-  var state: MasterState
+  var state: MasterState = MINIT
 
   def start(): Unit = {
-    server = ServerBuilder.forPort(port)
-      .addService(ConnectionGrpc)
+
   }
 }
