@@ -70,7 +70,7 @@ message TerminateRequest
 message TerminateResponse
 {}
 
-service Connect
+service Connection
 {
   rpc Start(StartRequest) returns (StartResponse);
   rpc Sample(SampleRequest) returns (SampleResponse);

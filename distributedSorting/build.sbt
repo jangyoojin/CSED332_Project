@@ -20,3 +20,4 @@ libraryDependencies ++= Seq(
   "io.grpc" % "grpc-netty" % scalapb.compiler.Version.grpcJavaVersion,
   "io.grpc" % "grpc-stub" % scalapb.compiler.Version.grpcJavaVersion
 )
+

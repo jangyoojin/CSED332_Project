@@ -1,7 +1,7 @@
 package network
 import message.shuffle.{ShuffleGrpc, FileRequest, FileResponse}
 import message.utils.Stat
-import Utils.FileIO
+import utils.FileIO
 import com.google.protobuf.ByteString
 
 

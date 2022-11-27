@@ -1,4 +1,4 @@
-package Utils
+package utils
 
 import message.utils.{workerRange,workerInfo}
 

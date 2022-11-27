@@ -1,7 +1,7 @@
 package network
 import message.shuffle.{FileRequest, FileResponse, ShuffleGrpc}
 import message.utils.Stat
-import Utils.FileIO
+import utils.FileIO
 import com.google.protobuf.ByteString
 
 import java.io.{BufferedWriter, File, FileOutputStream, FileWriter}
@@ -15,6 +15,9 @@ import java.util.logging.Logger
 import io.grpc.{ManagedChannelBuilder, Status}
 import io.grpc.stub.StreamObserver
 import io.grpc.{Server, ServerBuilder, Status}
+
+
+
 class FileServer(executionContext: ExecutionContext,port:Int,id:Int,tempDir:String)
 {
   val logger:Logger = Logger.getLogger(classOf[FileServer].getName)
@@ -22,7 +25,7 @@ class FileServer(executionContext: ExecutionContext,port:Int,id:Int,tempDir:Stri
   var server :Server= null
   def start():Unit=
   {
-  server=ServerBuilder.forPort(port).addService(ShuffleGrpc.bindService(new ShuffleImpl, executionContext)).build.start
+    server = ServerBuilder.forPort(port).addService(ShuffleGrpc.bindService(new ShuffleImpl,executionContext)).build.start
   }
   def stop():Unit={
 
@@ -59,8 +62,7 @@ class FileServer(executionContext: ExecutionContext,port:Int,id:Int,tempDir:Stri
 
 
     }
-
-
+    serviceCompanion
     }
   }
 

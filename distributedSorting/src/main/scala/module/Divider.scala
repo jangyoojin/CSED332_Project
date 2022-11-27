@@ -3,21 +3,22 @@ package module
 import scala.io.Source
 
 import java.io.File
-import Utils.FileIO
+import utils.FileIO
 
 object Divider {
   type Range = (String, String)
   // make a list [ (key) ], sample file에서 key만 받아오기
   def getKeys(sampleDirPath: String): Seq[String] = {
-    val sampleData = FileIO.getListofFiles(sampleDirPath, "sample-").map(file => Source.fromFile(file))
+    val sampleData = FileIO.getFile(sampleDirPath, "sample-").map(file => Source.fromFile(file))
     var i = 0
     val keys = for {
-      key <- keys
+      key <- sampleData
       line <- key.getLines
       if(!line.isEmpty())
     } yield line.take(10)
 
-    keys foreach (key => key.close)
+    sampleData foreach (key => key.close)
+    keys
   }
 
   // make a list [ (workerRangeNum, fileRanges list) ]
@@ -34,8 +35,7 @@ object Divider {
     val interval = total_len / (totalRangeNum - 1)
     var i = 0
     val pivots = for {
-      key
-      <- keys
+      key <- keys
       i = i + 1
       if (i % interval == 0)
     }
@@ -52,5 +52,6 @@ object Divider {
     for (range <- ranges) yield {
       ((range.head._1, range.last._2), range)
     }
+
   }
 }
