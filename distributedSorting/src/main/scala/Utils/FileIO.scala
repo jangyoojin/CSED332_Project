@@ -21,8 +21,13 @@ object FileIO
       else {
           List[File]()
       }
-
     }
+
+  def createDir(pathName: String): String = {
+    val newDir = new File(s"${System.getProperty("java.io.tmpdir")}/${pathName}")
+    assert(newDir.isDirectory)
+    newDir.getAbsolutePath
+  }
 
   def createFile(path:String, prefix: String): File={
     val filename=path+prefix
@@ -30,7 +35,5 @@ object FileIO
     dir.createNewFile()
     dir
   }
-
-
 
 }

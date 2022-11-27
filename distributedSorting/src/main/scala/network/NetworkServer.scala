@@ -23,11 +23,19 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
   var server: Server = null
   var state: MasterState = MINIT
 
+  var serverDir: String = null
+
   def start(): Unit = {
     server = ServerBuilder.forPort(port)
       .addService(ConnectGrpc.bindService(new ConnectionImpl, executionContext))
       .build
       .start
+    logger.info("Server started, listening on" + port)
+    println(s"${InetAddress.getLocalHost.getHostAddress}:${port}")
+
+    if (serverDir == null) {
+      serverDir = FileIO.createDir("master")
+    }
   }
 
   class ConnectionImpl() extends ConnectGrpc.Connect {
