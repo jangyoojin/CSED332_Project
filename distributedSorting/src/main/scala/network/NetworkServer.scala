@@ -32,9 +32,28 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       .start
     logger.info("Server started, listening on" + port)
     println(s"${InetAddress.getLocalHost.getHostAddress}:${port}")
-
+    sys.addShutdownHook {
+      self.shutdownServer()
+      logger.info("NetworkServer shut down")
+    }
     if (serverDir == null) {
       serverDir = FileIO.createDir("master")
+    }
+  }
+
+  def shutdownServer(): Unit = {
+    if (server != null) {
+      server.shutdown
+      if(!server.awaitTermination(5, TimeUnit.SECONDS)) {
+        server.shutdownNow() //fail shutdown while 5 seconds, shutdown now
+      }
+    }
+    if (serverDir != null) FileIO.deleteDir(serverDir)
+  }
+
+  def waitUntilShutdown(): Unit = {
+    if (server ! = null) {
+      server.awaitTermination
     }
   }
 
