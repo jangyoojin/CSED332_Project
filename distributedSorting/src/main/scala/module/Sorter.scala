@@ -3,16 +3,19 @@ package module
 import java.io.{File, FileOutputStream}
 import scala.io.Source
 
-// import utils._
+ import utils._
 
 object Sorter {
   /*  - inputDirPath는 input file들이 있는 directory의 path를 저장하고 있음
       - input file에 접근하여 sort를 진행하고 새로운 파일을 생성하여 outputDirPath에 해당하는 directory에 저장 */
-
   def sort(inputDirPath: String, outputDirPath: String): Any = {
     // 은하가 구현한 FileIO.getFile 함수 이용 import utils._
-    // unsortedFileList = FileIO.getFile(inputDirPath)
-    // unsortedFileList.foreach(sortEachFile(_.getPath, outputDirPath + _.getName))
+    val unsortedFileList = FileIO.getFile(inputDirPath, "")
+    for {
+      file <- unsortedFileList
+    } {
+      sortEachFile(file.getPath, outputDirPath + file.getName)
+    }
   }
 
   def sortEachFile(inputFilePath: String, outputFilePath: String): Any = {

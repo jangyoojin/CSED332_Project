@@ -14,7 +14,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
   require(workerNum > 0, "The number of worker must be positive")
 
   val logger = Logger.getLogger(classOf[NetworkServer].getName)
-  logger.setLevel(loggerLevel.level)
+  // logger.setLevel(loggerLevel.level)
 
   var server: Server = null
   var state: MasterState = MINIT

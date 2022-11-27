@@ -1,7 +1,7 @@
 package network
 import message.shuffle.{FileRequest, FileResponse, ShuffleGrpc}
 import message.utils.Stat
-import Utils.FileIO
+import utils.FileIO
 import com.google.protobuf.ByteString
 
 import java.io.{BufferedWriter, File, FileOutputStream, FileWriter}
@@ -60,8 +60,9 @@ class FileServer(executionContext: ExecutionContext,port:Int,id:Int,tempDir:Stri
 
     }
 
-
+      serviceCompanion
     }
+
   }
 
 }
