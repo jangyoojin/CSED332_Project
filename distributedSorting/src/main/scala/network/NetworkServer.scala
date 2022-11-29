@@ -1,17 +1,17 @@
 package network
 
+import com.sun.org.apache.xml.internal.resolver.helpers.FileURL
+
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
-
+import scala.collection.mutable.Map
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 import java.io.{File, FileOutputStream, OutputStream}
 import java.net._
-
 import io.grpc.{Server, ServerBuilder, Status}
 import message.connection.{ConnectGrpc, DivideRequest, DivideResponse, SampleRequest, SampleResponse, SortRequest, SortResponse, StartRequest, StartResponse, StartShuffleRequest, StartShuffleResponse, TerminateRequest, TerminateResponse}
 import sun.plugin.dom.exception.InvalidStateException
-
 import utils._
 
 class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int) { self =>
@@ -64,7 +64,15 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       if (state != MINIT) Future.failed(new InvalidStateException("fail to connect"))
       else {
         logger.info(s"Start: Worker ${request.ip}:${request.port} send StartRequest")
-
+        if(workers.size < workerNum) {
+          workers(workers.size + 1) = new WorkerData(workers.size + 1, request.ip, request.port)
+          if(workers.size == workerNum) {
+            state = MSTART
+          }
+          Future.successful(new StartResponse(workers.size))
+        } else {
+          Future.failed(new Exception("[start] there are too many workers"))
+        }
       }
     }
 
