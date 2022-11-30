@@ -28,7 +28,7 @@ case object WTERMINATE extends WorkerState
 class WorkerData(val workerId:Int, val ip:String, val port:Int)
 {
   var state : WorkerState = WINIT
-  type Range = (Int, Int)
+  type Range = (String, String)
   var mainRange : Range  = null
   var subRange : Seq[Range]=null
   //file과 관련된것도 ..?

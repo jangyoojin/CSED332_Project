@@ -3,16 +3,15 @@ package network
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 
-
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
-import java.io.{OutputStream, FileOutputStream, File}
+import java.io.{File, FileOutputStream, OutputStream}
 import java.net._
 
 import io.grpc.{Server, ServerBuilder, Status}
-import io.grpc.stub.StreamObserver
+import message.connection.{ConnectGrpc, DivideRequest, DivideResponse, SampleRequest, SampleResponse, SortRequest, SortResponse, StartRequest, StartResponse, StartShuffleRequest, StartShuffleResponse, TerminateRequest, TerminateResponse}
+import sun.plugin.dom.exception.InvalidStateException
 
-import message.connection.{ConnectGrpc, SampleRequest, SampleResponse, StartRequest, StartResponse}
 import utils._
 
 class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int) { self =>
@@ -22,10 +21,12 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
 
   var server: Server = null
   var state: MasterState = MINIT
-
   var serverDir: String = null
 
-  def start(): Unit = {
+  val workers = Map[Int, WorkerData]()
+
+  /*--------------method for Master lifecycle-------------------*/
+  def open(): Unit = {
     server = ServerBuilder.forPort(port)
       .addService(ConnectGrpc.bindService(new ConnectionImpl, executionContext))
       .build
@@ -52,12 +53,29 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
   }
 
   def waitUntilShutdown(): Unit = {
-    if (server ! = null) {
+    if (server != null) {
       server.awaitTermination
     }
   }
 
+  /*--------------method for ConnectionImpl method-------------------*/
   class ConnectionImpl() extends ConnectGrpc.Connect {
+    override def start(request: StartRequest): Future[StartResponse] = {
+      if (state != MINIT) Future.failed(new InvalidStateException("fail to connect"))
+      else {
+        logger.info(s"Start: Worker ${request.ip}:${request.port} send StartRequest")
 
+      }
+    }
+
+    override def sample(request: SampleRequest): Future[SampleResponse] = ???
+
+    override def divide(request: DivideRequest): Future[DivideResponse] = ???
+
+    override def startShuffle(request: StartShuffleRequest): Future[StartShuffleResponse] = ???
+
+    override def sort(request: SortRequest): Future[SortResponse] = ???
+
+    override def terminate(request: TerminateRequest): Future[TerminateResponse] = ???
   }
 }
