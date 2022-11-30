@@ -4,17 +4,19 @@ import com.google.protobuf.ByteString
 import io.grpc.stub.StreamObserver
 
 import scala.collection.mutable.Map
-import scala.concurrent.Promise
+import scala.concurrent.{ExecutionContext, Promise}
 import java.util.logging.Logger
 import io.grpc.{ManagedChannel, ManagedChannelBuilder, Status}
 import message.connection._
 import message.utils._
 import utils._
-import module.Sampler
+import module._
 
 import java.io.File
 import scala.annotation.tailrec
 import scala.io.Source
+import java.util.concurrent.TimeUnit
+
 
 class ClientData (
                    val inputDirPaths: Seq[String],
@@ -121,9 +123,10 @@ class NetworkClient(clientData: ClientData) {
           counter = counter + 1
         }
         assert(counter != totalWorkerNum)
+        logger.info("requestDivide(): done!")
       }
       case Stat.FAILURE => {
-        logger.warning("requestDivide(): divideReponse's Stat is FAILURE")
+        logger.warning("requestDivide(): divideResponse's Stat is FAILURE")
         throw new Exception
       }
       case _ => {
@@ -133,15 +136,134 @@ class NetworkClient(clientData: ClientData) {
     }
   }
   def partition(): Unit = {
-    // partitioning
+    logger.info("partition(): partitioning...")
+    partitionedDir = FileIO.createDir("partitionedDir")
+    val partitioningPoints = (for {
+      (id, worker) <- workers } yield { id -> worker.mainRange}).toMap
+    Partitioner.partition(clientData.inputDirPaths, partitionedDir, partitioningPoints)
+    logger.info("partition(): done!")
   }
 
-  def startFileServer(): Unit = ???
-  def requestShuffle(): Unit = ???
-  def shuffle(): Unit = ???
-  def requestSort(): Unit = ???
-  def stopFileServer(): Unit = ???
-  def subPartition(): Unit = ???
-  def sort(): Unit = ???
-  def shutdown(): Unit = ???
+  def startFileServer(): Unit = {
+    logger.info("startFileServer(): starting FileServer...")
+    fileServer = new FileServer(ExecutionContext.global, clientData.shuffleServerPort, workerId, partitionedDir)
+    fileServer.start
+    shuffledDir = FileIO.createDir("shuffledDir")
+    logger.info("startFileServer(): done!")
+  }
+
+  @tailrec
+  final def requestShuffle(): Unit = {
+    logger.info("requestShuffle(): sending shuffleRequest to Master...")
+    val sortRequest = new SortRequest(workerId)
+    val sortResponse = blockingStub.sort(sortRequest)
+    sortResponse.status match {
+      case Stat.SUCCESS => {
+        logger.info("requestShuffle(): done!")
+      }
+      case Stat.FAILURE => {
+        logger.info("requestShuffle(): shuffleResponse's Stat is FAILURE")
+        throw new Exception
+      }
+      case _ => {
+        Thread.sleep(5000) // 5초 후 재시도
+        requestShuffle
+      }
+    }
+  }
+  def shuffle(): Unit = {
+    logger.info("shuffle(): shuffling...")
+    // Worker 본인을 위한 파일 shuffledDir로 옮기기
+    val partitionedFileListForMe = FileIO.getFile(partitionedDir, s"partition-$workerId")
+    for (file <- partitionedFileListForMe) {
+      val shuffledFile = new File(file.getAbsolutePath.replaceFirst(partitionedDir + s"/partition-$workerId", shuffledDir + s"/shuffle-$workerId"))
+      assert(!shuffledFile.exists)
+      file.renameTo(shuffledFile) // 이때 shufflledDir 가 존재하지 않는다면 에러가 발생함!!
+    }
+
+    // 다른 Worker 들에게 partitionedFile 보내주기
+    val workerIdList = (1 to totalWorkerNum).toList
+    for {
+      wId <- workerIdList
+    } {
+      if(wId!=workerId) {
+        logger.info(s"shuffle(): sending partitioned file from ${workerId} to ${wId}")
+        var fileClient: FileClient = null
+        try {
+          val worker = workers(wId)
+          fileClient = new FileClient(worker.ip, worker.port, workerId, partitionedDir)
+          fileClient.shuffleWithAllReceiver(wId) // 은하가 구현해 놓은 fileClient의 함수 이용
+        } finally {
+          if (fileClient != null) { fileClient.shutdown }
+        }
+      }
+    }
+    logger.info("shuffle(): done!")
+  }
+
+  @tailrec
+  final def requestSort(): Unit = {
+    logger.info("reuqestSort(): sending sortRequest to Master...")
+    val sortRequest = SortRequest(workerId)
+    val sortResponse = blockingStub.sort(sortRequest)
+    sortResponse.status match {
+      case Stat.SUCCESS => {
+        logger.info("requestSort(): done!")
+      }
+      case Stat.FAILURE => {
+        logger.info("requestSort(): sortResponse's Stat is FAILURE")
+        throw new Exception
+      }
+      case _ => {
+        Thread.sleep(5000) // 5초 후 재시도
+        requestSort
+      }
+    }
+  }
+  def stopFileServer(): Unit = {
+    logger.info("stopFileServer(): stopping FileServer...")
+    if (fileServer != null) {
+      fileServer.stop
+      fileServer = null
+    }
+    logger.info("stopFileServer(): done!")
+  }
+  def subPartition(): Unit = {
+    logger.info("subPartition(): subpartitioning...")
+    subpartitionedDir = FileIO.createDir("subpartitionedDir")
+    Partitioner.subPartition(shuffledDir, subpartitionedDir, workers(workerId).subRange)
+    logger.info("subPartition(): done!")
+  }
+  def sort(): Unit = {
+    logger.info("sort(): sorting...")
+    Sorter.sort(subpartitionedDir, clientData.outputDirPath)
+    logger.info("sort(): done!")
+  }
+  def shutdown(): Unit = {
+    logger.info("shutdown(): When we pull up, you know it's a shutdown...")
+    if (fileServer != null) {
+      fileServer.stop
+      fileServer = null
+    }
+    if (sampleDir != null) {
+      FileIO.deleteDir(sampleDir)
+    }
+    if (partitionedDir != null) {
+      FileIO.deleteDir(partitionedDir)
+    }
+    if (shuffledDir != null) {
+      FileIO.deleteDir(shuffledDir)
+    }
+    if (subpartitionedDir != null) {
+      FileIO.deleteDir(subpartitionedDir)
+    }
+
+    if (workerId != -1) {
+      val terminateRequest = new TerminateRequest(workerId)
+      val terminateResponse = blockingStub.terminate(terminateRequest)
+      workerId = -1
+      channel.shutdown.awaitTermination(5000, TimeUnit.MILLISECONDS)
+    }
+    logger.info("shutdown(): Keep watching me shut you down!!!")
+  }
 }
