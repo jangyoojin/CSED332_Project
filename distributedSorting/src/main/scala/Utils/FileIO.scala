@@ -25,6 +25,7 @@ object FileIO
 
   def createDir(pathName: String): String = {
     val newDir = new File(s"${System.getProperty("java.io.tmpdir")}/${pathName}")
+    newDir.mkdir
     assert(newDir.isDirectory)
     newDir.getAbsolutePath
   }
