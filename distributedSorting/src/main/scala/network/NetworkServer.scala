@@ -1,17 +1,17 @@
 package network
 
-import com.sun.org.apache.xml.internal.resolver.helpers.FileURL
-
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable.Map
+
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 import java.io.{File, FileOutputStream, OutputStream}
 import java.net._
+
 import io.grpc.{Server, ServerBuilder, Status}
-import message.connection.{ConnectGrpc, DivideRequest, DivideResponse, SampleRequest, SampleResponse, SortRequest, SortResponse, StartRequest, StartResponse, StartShuffleRequest, StartShuffleResponse, TerminateRequest, TerminateResponse}
-import sun.plugin.dom.exception.InvalidStateException
+
+import message.connection._
 import utils._
 
 class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int) { self =>
@@ -31,7 +31,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       .addService(ConnectGrpc.bindService(new ConnectionImpl, executionContext))
       .build
       .start
-    logger.info("Server started, listening on" + port)
+    logger.info("Server started, listening on " + port)
     println(s"${InetAddress.getLocalHost.getHostAddress}:${port}")
     sys.addShutdownHook {
       self.shutdownServer()
@@ -61,7 +61,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
   /*--------------method for ConnectionImpl method-------------------*/
   class ConnectionImpl() extends ConnectGrpc.Connect {
     override def start(request: StartRequest): Future[StartResponse] = {
-      if (state != MINIT) Future.failed(new InvalidStateException("fail to connect"))
+      if (state != MINIT) Future.failed(new Exception("fail to connect"))
       else {
         logger.info(s"Start: Worker ${request.ip}:${request.port} send StartRequest")
         if(workers.size < workerNum) {
@@ -76,7 +76,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       }
     }
 
-    override def sample(request: SampleRequest): Future[SampleResponse] = ???
+    override def sample(request: SampleRequest): Future[SampleResponse] =
 
     override def divide(request: DivideRequest): Future[DivideResponse] = ???
 

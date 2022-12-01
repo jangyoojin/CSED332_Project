@@ -15,7 +15,6 @@ object Master{
       }
     }
     val server = new NetworkServer(ExecutionContext.global, port, workerNum)
-
     server.open()
     server.waitUntilShutdown()
 
