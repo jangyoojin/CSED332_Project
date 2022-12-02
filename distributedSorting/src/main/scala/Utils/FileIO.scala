@@ -18,10 +18,9 @@ object FileIO
           }
           else temps.filter( x=>x.getName.startsWith(prefix)).toList
         }
-      else
-        {
+      else {
           List[File]()
-        }
+      }
 
     }
 
