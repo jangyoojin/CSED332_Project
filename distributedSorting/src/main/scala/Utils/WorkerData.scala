@@ -36,7 +36,7 @@ class WorkerData(val workerId:Int, val ip:String, val port:Int)
 }
 
 object WorkerData{
-  def workerDataToMessage(worker:WorkerData):workerInfo={
+  def workerDataToMessage(worker:WorkerData): workerInfo={
     workerInfo(
       workerId = worker.workerId,
       ip = worker.ip,

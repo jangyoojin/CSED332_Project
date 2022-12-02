@@ -1,21 +1,19 @@
 package network
 
-import io.grpc.stub.StreamObserver
-
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable.Map
+import scala.util.{Failure, Success}
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 import java.io.FileOutputStream
 import java.net._
+import io.grpc.stub.StreamObserver
 import io.grpc.{Server, ServerBuilder, Status}
 import message.connection._
-import message.utils.Stat
+import message.utils.{Stat, workerInfo}
 import utils._
 import module.Divider
-
-import scala.util.{Failure, Success}
 
 class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int) { self =>
   require(workerNum > 0, "The number of worker must be positive")
@@ -122,6 +120,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
               workers(id).state = WSAMPLE
               workers(id).fileNum = fileNum
             }
+
             /*------Start dividing: make ranges------------*/
             def checkWorkersState(): Boolean = {
               workers.synchronized {
@@ -130,7 +129,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
               }
             }
             if(checkWorkersState()) {
-              logger.info(s"[Divide] All workers send sample data so start dividing")
+              logger.info(s"[divide] All workers send sample data so start dividing")
               val future = Future {
                 val fileRangeNum = workers.map{case (id, worker) => worker.fileNum}.sum / workerNum
                 val ranges = Divider.getRange(serverDir, workerNum, fileRangeNum)
@@ -153,7 +152,16 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       }
     }
 
-    override def divide(request: DivideRequest): Future[DivideResponse] = ???
+    override def divide(request: DivideRequest): Future[DivideResponse] = {
+      case MDIVIDE => {
+        def convertWorkersTOMessage(): Seq[workerInfo] = {
+          (workers map {case (id, worker) => WorkerData.workerDataToMessage(worker)}).toSeq
+        }
+        Future.successful(new DivideResponse(Stat.SUCCESS, workerNum, convertWorkersTOMessage))
+      }
+      case FAILED => Future.failed(new Exception("[divide] Fail to dividing"))
+      case _ => Future.successful(new DivideResponse(Stat.PROCESSING))
+    }
 
     override def startShuffle(request: StartShuffleRequest): Future[StartShuffleResponse] = ???
 
