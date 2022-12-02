@@ -10,6 +10,7 @@ import scala.io.Source
 
 import scala.concurrent.{Promise, Await}
 import scala.concurrent.duration
+import java.util.concurrent.TimeUnit
 
 import java.util.logging.Logger
 
@@ -23,14 +24,16 @@ class FileClient(host: String, port: Int, id: Int, currentPath: String) {
   val asyncStub = ShuffleGrpc.stub(channel)
 
   def shutdown(): Unit = {
-    //channel.shutdown().awaitTermination(5, TimeUnit.SECONDS)
+    channel.shutdown().awaitTermination(5, TimeUnit.SECONDS)
   }
 
   def shuffleWithAllReceiver(shuffleId: Int): Unit = {
+
     for {
       file<-FileIO.getFile(currentPath,s"partition-${shuffleId}")
     }
     {
+      logger.info("worker is requesting shuffle to another worker")
       val p = Promise[Unit]()
       requestShuffle(file,p);
       Await.ready(p.future,duration.Duration.Inf)
@@ -42,15 +45,17 @@ class FileClient(host: String, port: Int, id: Int, currentPath: String) {
     {
       override def onNext(response:FileResponse) :Unit = {
         if (response.status == Stat.SUCCESS){
+          logger.info("ResponseObserver: Sending is succedded")
           shufflePromise.success()
         }
 
       }
       override def onCompleted(): Unit = {
-        logger.info("Done sending")
+        logger.info("ResponseObserver : Done sending")
       }
 
       override def onError(t: Throwable): Unit = {
+        logger.info("ResponseObserver : Error is occured sending request")
         shufflePromise.failure(t)
       }
     }
@@ -58,6 +63,7 @@ class FileClient(host: String, port: Int, id: Int, currentPath: String) {
 
     val requestObserver = asyncStub.shuffle(responseObserver)
     try {
+      logger.info(" ...File client is requesting shuffle to FileServer...")
       val srcLines = Source.fromFile(file).getLines()
       val FileNameArray = file.getName.split('-')
       val receiverId = FileNameArray(2).toInt
@@ -72,6 +78,7 @@ class FileClient(host: String, port: Int, id: Int, currentPath: String) {
    catch{
      case t: Exception =>
        {
+         logger.info("exception occured!")
          requestObserver.onError(t)
        }
    }
