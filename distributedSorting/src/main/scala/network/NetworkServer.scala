@@ -91,7 +91,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       new StreamObserver[SampleRequest] {
         var id = -1
         var fileNum = 0
-        var file = null
+        var file: FileOutputStream = null
         override def onNext(value: SampleRequest): Unit = {
           id = value.workerId
           fileNum = value.inputFileNum
@@ -141,7 +141,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       }
     }
 
-    override def divide(request: DivideRequest): Future[DivideResponse] = {
+    override def divide(request: DivideRequest): Future[DivideResponse] = state match {
       case MDIVIDE => {
         def convertWorkersTOMessage(): Seq[workerInfo] = {
           (workers map {case (id, worker) => WorkerData.workerDataToMessage(worker)}).toSeq
@@ -180,6 +180,16 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       }
     }
 
-    override def terminate(request: TerminateRequest): Future[TerminateResponse] = ???
+    override def terminate(request: TerminateRequest): Future[TerminateResponse] = {
+      workers.synchronized( {
+        workers(request.workerId).state = WTERMINATE
+        if (checkWorkersState(MSORT, WTERMINATE)) {
+          logger.info(s"[terminate] All Workers terminated. Master terminate")
+          state = MTERMINATE
+          shutdownServer()
+        }
+      })
+      Future.successful(new TerminateResponse)
+    }
   }
 }
