@@ -166,7 +166,19 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       }
     }
 
-    override def sort(request: SortRequest): Future[SortResponse] = ???
+    override def sort(request: SortRequest): Future[SortResponse] = {
+      assert(workers(request.workerId).state == WSORT || workers(request.workerId).state == WSHUFFLE)
+      if (checkWorkersState(MSHUFFLE, WSHUFFLE)) {
+        state = MSORT
+      }
+      if (workers(request.workerId).state == WSORT) {
+        workers.synchronized(workers(request.workerId).state = WSHUFFLE)
+      }
+      state match {
+        case MSORT => Future.successful(new SortResponse(Stat.SUCCESS))
+        case _ => Future.successful(new SortResponse(Stat.PROCESSING))
+      }
+    }
 
     override def terminate(request: TerminateRequest): Future[TerminateResponse] = ???
   }
