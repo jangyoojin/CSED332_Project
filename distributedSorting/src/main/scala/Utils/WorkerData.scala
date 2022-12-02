@@ -7,11 +7,12 @@ import message.utils.{workerRange,workerInfo}
 trait MasterState
 case object MINIT extends MasterState
 case object MSTART extends MasterState
-case object MSAMPLE extends MasterState
 case object MDIVIDE extends MasterState
 case object MSHUFFLE extends MasterState
 case object MSORT extends MasterState
 case object MTERMINATE extends MasterState
+case object SUCCESS extends MasterState
+case object FAILED extends MasterState
 
 trait WorkerState
 case object WINIT extends WorkerState
@@ -28,14 +29,14 @@ case object WTERMINATE extends WorkerState
 class WorkerData(val workerId:Int, val ip:String, val port:Int)
 {
   var state : WorkerState = WINIT
-  type Range = (Int, Int)
+  type Range = (String, String)
   var mainRange : Range  = null
   var subRange : Seq[Range]=null
-  //file과 관련된것도 ..?
+  var fileNum: Int = 0
 }
 
 object WorkerData{
-  def workerDataToMessage(worker:WorkerData):workerInfo={
+  def workerDataToMessage(worker:WorkerData): workerInfo={
     workerInfo(
       workerId = worker.workerId,
       ip = worker.ip,

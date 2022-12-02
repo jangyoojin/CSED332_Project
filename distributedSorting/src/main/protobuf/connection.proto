@@ -1,6 +1,6 @@
 syntax="proto3";
 
-package message ;
+package message;
 import "utils.proto";
 
 message StartRequest
@@ -73,7 +73,7 @@ message TerminateResponse
 service Connection
 {
   rpc Start(StartRequest) returns (StartResponse);
-  rpc Sample(SampleRequest) returns (SampleResponse);
+  rpc Sample(stream SampleRequest) returns (SampleResponse);
   rpc Divide(DivideRequest) returns (DivideResponse);
   rpc StartShuffle(StartShuffleRequest) returns (StartShuffleResponse);
   rpc Sort(SortRequest) returns (SortResponse);
