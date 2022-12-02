@@ -2,16 +2,20 @@ package network
 
 import io.grpc.stub.StreamObserver
 
-import scala.concurrent.{Await, ExecutionContext, Future, Promise}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable.Map
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
-import java.io.{File, FileOutputStream, OutputStream}
+import java.io.FileOutputStream
 import java.net._
 import io.grpc.{Server, ServerBuilder, Status}
 import message.connection._
+import message.utils.Stat
 import utils._
+import module.Divider
+
+import scala.util.{Failure, Success}
 
 class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int) { self =>
   require(workerNum > 0, "The number of worker must be positive")
@@ -91,17 +95,17 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
         new StreamObserver[SampleRequest] {
           var id = -1
           var fileNum = 0
-          var writer = null
+          var file = null
           override def onNext(value: SampleRequest): Unit = {
             id = value.workerId
             fileNum = value.inputFileNum
             //1. make a file to write the sample data in serverDir(: ./master/)
-            if (writer == null) {
-              writer = new FileOutputStream(FileIO.createFile(serverDir, s"sample_${value.workerId}"))
+            if (file == null) {
+              file = new FileOutputStream(FileIO.createFile(serverDir, s"sample_${value.workerId}"))
             }
             //2. write sample data of value(the request) to sample_00
-            value.data.writeTo(writer)
-            writer.flush
+            value.data.writeTo(file)
+            file.flush
           }
 
           override def onError(t: Throwable): Unit = {
@@ -111,10 +115,39 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
 
           override def onCompleted(): Unit = {
             logger.info(s"[sample] Worker $id done")
-            writer.close
+            file.close
             request.onNext(new SampleResponse(status = Stat.SUCCESS))
             request.onCompleted()
-
+            workers.synchronized {
+              workers(id).state = WSAMPLE
+              workers(id).fileNum = fileNum
+            }
+            /*------Start dividing: make ranges------------*/
+            def checkWorkersState(): Boolean = {
+              workers.synchronized {
+                if (state == MSTART && workers.size == workerNum && workers.forall{case (_, worker) => worker.state == WSAMPLE}) true
+                else false
+              }
+            }
+            if(checkWorkersState()) {
+              logger.info(s"[Divide] All workers send sample data so start dividing")
+              val future = Future {
+                val fileRangeNum = workers.map{case (id, worker) => worker.fileNum}.sum / workerNum
+                val ranges = Divider.getRange(serverDir, workerNum, fileRangeNum)
+                workers.synchronized {
+                  for {
+                    (id, worker) <- workers
+                  } {
+                    worker.mainRange = ranges(id - 1)._1
+                    worker.subRange = ranges(id - 1)._2
+                  }
+                }
+              }
+              future.onComplete{
+                case Success(value) => state = MDIVIDE
+                case Failure(exception) => state = FAILED
+              }
+            }
           }
         }
       }
