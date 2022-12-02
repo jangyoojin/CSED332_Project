@@ -58,94 +58,83 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       server.awaitTermination
     }
   }
+//Check all workers state. Use this function in sample, startShuffle, sort, terminate
+  def checkWorkersState(masterState: MasterState, workerState: WorkerState): Boolean = {
+    workers.synchronized {
+      if (state == masterState && workers.size == workerNum && workers.forall { case (_, worker) => worker.state == workerState }) true
+      else false
+    }
+  }
 
   /*--------------method for ConnectionImpl method-------------------*/
   class ConnectionImpl() extends ConnectGrpc.Connect {
     override def start(request: StartRequest): Future[StartResponse] = {
-      if (state != MINIT) Future.failed(new Exception("fail to connect"))
-      else {
-        logger.info(s"Start: Worker ${request.ip}:${request.port} send StartRequest")
-        workers.synchronized {
-          if (workers.size < workerNum) {
-            workers(workers.size + 1) = new WorkerData(workers.size + 1, request.ip, request.port)
-            if (workers.size == workerNum) {
-              state = MSTART
-            }
-            Future.successful(new StartResponse(workers.size))
-          } else {
-            Future.failed(new Exception("[start] there are too many workers"))
+      assert(state == MINIT)
+      logger.info(s"Start: Worker ${request.ip}:${request.port} send StartRequest")
+      workers.synchronized {
+        if (workers.size < workerNum) {
+          workers(workers.size + 1) = new WorkerData(workers.size + 1, request.ip, request.port)
+          if (workers.size == workerNum) {
+            state = MSTART
           }
+          Future.successful(new StartResponse(workers.size))
+        } else {
+          Future.failed(new Exception("[start] there are too many workers"))
         }
       }
     }
 
     override def sample(request: StreamObserver[SampleResponse]): StreamObserver[SampleRequest] = {
-      if (state != MINIT && state != MSTART) {
-        new StreamObserver[SampleRequest] {
-          override def onNext(value: SampleRequest): Unit = {
-            new Exception("[sample] Wrong server state")
+      assert(serverDir != null)
+      assert(state == MINIT || state == MSTART)
+      logger.info("[sample] Worker send sample")
+      new StreamObserver[SampleRequest] {
+        var id = -1
+        var fileNum = 0
+        var file = null
+        override def onNext(value: SampleRequest): Unit = {
+          id = value.workerId
+          fileNum = value.inputFileNum
+          //1. make a file to write the sample data in serverDir(: ./master/)
+          if (file == null) {
+            file = new FileOutputStream(FileIO.createFile(serverDir, s"sample_${value.workerId}"))
           }
-          override def onError(t: Throwable): Unit = {}
-          override def onCompleted(): Unit = {}
+          //2. write sample data of value(the request) to sample_00
+          value.data.writeTo(file)
+          file.flush
         }
-      } else {
-        logger.info("[sample] Worker send sample")
-        new StreamObserver[SampleRequest] {
-          var id = -1
-          var fileNum = 0
-          var file = null
-          override def onNext(value: SampleRequest): Unit = {
-            id = value.workerId
-            fileNum = value.inputFileNum
-            //1. make a file to write the sample data in serverDir(: ./master/)
-            if (file == null) {
-              file = new FileOutputStream(FileIO.createFile(serverDir, s"sample_${value.workerId}"))
-            }
-            //2. write sample data of value(the request) to sample_00
-            value.data.writeTo(file)
-            file.flush
+        override def onError(t: Throwable): Unit = {
+          logger.warning(s"[sample] Worker $id fail to send a sample data ${Status.fromThrowable(t)}")
+          throw t
+        }
+        override def onCompleted(): Unit = {
+          logger.info(s"[sample] Worker $id done")
+          file.close
+          request.onNext(new SampleResponse(status = Stat.SUCCESS))
+          request.onCompleted()
+          workers.synchronized {
+            workers(id).state = WSAMPLE
+            workers(id).fileNum = fileNum
           }
 
-          override def onError(t: Throwable): Unit = {
-            logger.warning(s"[sample] Worker $id fail to send a sample data ${Status.fromThrowable(t)}")
-            throw t
-          }
-
-          override def onCompleted(): Unit = {
-            logger.info(s"[sample] Worker $id done")
-            file.close
-            request.onNext(new SampleResponse(status = Stat.SUCCESS))
-            request.onCompleted()
-            workers.synchronized {
-              workers(id).state = WSAMPLE
-              workers(id).fileNum = fileNum
-            }
-
-            /*------Start dividing: make ranges------------*/
-            def checkWorkersState(): Boolean = {
+          /*------Start dividing: make ranges------------*/
+          if(checkWorkersState(MINIT, WSAMPLE)) {
+            logger.info(s"[divide] All workers send sample data so start dividing")
+            val future = Future {
+              val fileRangeNum = workers.map{case (id, worker) => worker.fileNum}.sum / workerNum
+              val ranges = Divider.getRange(serverDir, workerNum, fileRangeNum)
               workers.synchronized {
-                if (state == MSTART && workers.size == workerNum && workers.forall{case (_, worker) => worker.state == WSAMPLE}) true
-                else false
-              }
-            }
-            if(checkWorkersState()) {
-              logger.info(s"[divide] All workers send sample data so start dividing")
-              val future = Future {
-                val fileRangeNum = workers.map{case (id, worker) => worker.fileNum}.sum / workerNum
-                val ranges = Divider.getRange(serverDir, workerNum, fileRangeNum)
-                workers.synchronized {
-                  for {
-                    (id, worker) <- workers
-                  } {
-                    worker.mainRange = ranges(id - 1)._1
-                    worker.subRange = ranges(id - 1)._2
-                  }
+                for {
+                  (id, worker) <- workers
+                } {
+                  worker.mainRange = ranges(id - 1)._1
+                  worker.subRange = ranges(id - 1)._2
                 }
               }
-              future.onComplete{
-                case Success(value) => state = MDIVIDE
-                case Failure(exception) => state = FAILED
-              }
+            }
+            future.onComplete{
+              case Success(value) => state = MDIVIDE
+              case Failure(exception) => state = FAILED
             }
           }
         }
@@ -163,7 +152,19 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       case _ => Future.successful(new DivideResponse(Stat.PROCESSING))
     }
 
-    override def startShuffle(request: StartShuffleRequest): Future[StartShuffleResponse] = ???
+    override def startShuffle(request: StartShuffleRequest): Future[StartShuffleResponse] = {
+      assert(workers(request.workerId).state == WDIVIDE || workers(request.workerId).state == WSORT)
+      if (checkWorkersState(MDIVIDE, WSORT)) {
+        state = MSHUFFLE
+      }
+      if (workers(request.workerId).state == WSAMPLE) {
+        workers.synchronized(workers(request.workerId).state == WSORT)
+      }
+      state match {
+        case MSHUFFLE => Future.successful(new StartShuffleResponse(Stat.SUCCESS))
+        case _ => Future.successful(new StartShuffleResponse(Stat.PROCESSING))
+      }
+    }
 
     override def sort(request: SortRequest): Future[SortResponse] = ???
 
