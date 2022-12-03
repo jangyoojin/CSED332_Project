@@ -6,6 +6,7 @@ import java.io.{File,FileOutputStream}
 object Sampler {
   def sample(inputDirPath: String, sampleDirPath: String, sampleSize: Int): Unit = {
     val inputDir = new File(inputDirPath)
+    assert(inputDir.isDirectory)
     val headFile = inputDir.listFiles.filter(_.isFile).toList.head
     val source = Source.fromFile(headFile)
     val sampleFileName = sampleDirPath + "/sample"

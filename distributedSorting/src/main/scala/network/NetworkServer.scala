@@ -118,7 +118,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
           }
 
           /*------Start dividing: make ranges------------*/
-          if(checkWorkersState(MINIT, WSAMPLE)) {
+          if(checkWorkersState(MSTART, WSAMPLE)) {
             logger.info(s"[divide] All workers send sample data so start dividing")
             val future = Future {
               val fileRangeNum = workers.map{case (id, worker) => worker.fileNum}.sum / workerNum
