@@ -123,7 +123,7 @@ class NetworkClient(clientData: ClientData) {
           workers(worker.workerId) = WorkerData.MessageToWorkerData(worker)
           counter = counter + 1
         }
-        assert(counter != totalWorkerNum)
+        assert(counter == totalWorkerNum)
         logger.info("requestDivide(): done!")
       }
       case Stat.FAILURE => {

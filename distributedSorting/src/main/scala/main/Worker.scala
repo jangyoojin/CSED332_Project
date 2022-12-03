@@ -8,7 +8,6 @@ object Worker {
   def main(args: Array[String]): Unit = {
     val clientData = Parser.parse(args)
     val networkClient = new NetworkClient(clientData)
-
     try {
       networkClient.requestStart
       networkClient.sample

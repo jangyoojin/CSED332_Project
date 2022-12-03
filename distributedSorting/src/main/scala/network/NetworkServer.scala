@@ -163,7 +163,10 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
         workers.synchronized(workers(request.workerId).state == WSORT)
       }
       state match {
-        case MSHUFFLE => Future.successful(new StartShuffleResponse(Stat.SUCCESS))
+        case MSHUFFLE => {
+          logger.info(s"[startShuffle] Start shuffling")
+          Future.successful(new StartShuffleResponse(Stat.SUCCESS))
+        }
         case _ => Future.successful(new StartShuffleResponse(Stat.PROCESSING))
       }
     }
@@ -177,7 +180,10 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
         workers.synchronized(workers(request.workerId).state = WSHUFFLE)
       }
       state match {
-        case MSORT => Future.successful(new SortResponse(Stat.SUCCESS))
+        case MSORT => {
+          logger.info("[sort] All Workers is sorted")
+          Future.successful(new SortResponse(Stat.SUCCESS))
+        }
         case _ => Future.successful(new SortResponse(Stat.PROCESSING))
       }
     }

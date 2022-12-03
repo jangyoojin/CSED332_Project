@@ -11,6 +11,7 @@ object Parser {
     val masterIPPort = args(0)
 
     // args(1) 은 "-I" 여야 함
+    require(args(1) == "-I")
     val inputDirPaths = args.slice(2, args.length - 2)
 
     // args(-2) 는 "-O" 여야 함
