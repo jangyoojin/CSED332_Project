@@ -4,10 +4,12 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable.Map
 import scala.util.{Failure, Success}
+
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 import java.io.FileOutputStream
 import java.net._
+
 import io.grpc.stub.StreamObserver
 import io.grpc.{Server, ServerBuilder, Status}
 import message.connection._
@@ -70,7 +72,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
   class ConnectionImpl() extends ConnectGrpc.Connect {
     override def start(request: StartRequest): Future[StartResponse] = {
       assert(state == MINIT)
-      logger.info(s"Start: Worker ${request.ip}:${request.port} send StartRequest")
+      logger.info(s"[start] Worker ${request.ip}:${request.port} send StartRequest")
       workers.synchronized {
         if (workers.size < workerNum) {
           workers(workers.size + 1) = new WorkerData(workers.size + 1, request.ip, request.port)
@@ -118,7 +120,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
           }
 
           /*------Start dividing: make ranges------------*/
-          if(checkWorkersState(MINIT, WSAMPLE)) {
+          if(checkWorkersState(MSTART, WSAMPLE)) {
             logger.info(s"[divide] All workers send sample data so start dividing")
             val future = Future {
               val fileRangeNum = workers.map{case (id, worker) => worker.fileNum}.sum / workerNum

@@ -1,6 +1,7 @@
 package module
 
 import java.io.{File, FileOutputStream}
+import java.util.logging.Logger
 import scala.io.Source
 
 object Sampler {

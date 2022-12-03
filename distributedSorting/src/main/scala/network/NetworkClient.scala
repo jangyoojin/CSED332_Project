@@ -58,6 +58,7 @@ class NetworkClient(clientData: ClientData) {
   }
   def sample(): Unit = {
     logger.info("sample(): sampling...")
+    logger.info(clientData.inputDirPaths.head)
     Sampler.sample(clientData.inputDirPaths.head, sampleDir, sampleLinesNum)
     logger.info("sample(): done!")
   }
