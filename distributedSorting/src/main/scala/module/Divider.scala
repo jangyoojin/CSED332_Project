@@ -9,7 +9,7 @@ object Divider {
   type Range = (String, String)
   // make a list [ (key) ], sample file에서 key만 받아오기
   def getKeys(sampleDirPath: String): Seq[(String, Int)] = {
-    val sampleData = FileIO.getFile(sampleDirPath, "sample-").map(file => Source.fromFile(file))
+    val sampleData = FileIO.getFile(sampleDirPath, "sample_").map(file => Source.fromFile(file))
     var i = 0
     val keys = for {
       key <- sampleData
@@ -19,7 +19,6 @@ object Divider {
       i = i + 1
       (line.take(10), i)
     }
-
     sampleData foreach (_.close)
     keys
   }

@@ -42,10 +42,13 @@ object FileIO
   }
 
   def createFile(path:String, prefix: String): File={
-    val filename=path+prefix
-    var dir = new File(filename)
-    dir.createNewFile()
-    dir
+    val dir = new File(path)
+    val tempFile = File.createTempFile(prefix, "", dir)
+    tempFile
+//    val filename= path+prefix
+//    var dir = new File(filename)
+//    dir.createNewFile()
+//    dir
   }
 
 }

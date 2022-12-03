@@ -41,7 +41,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       logger.info("NetworkServer shut down")
     }
     if (serverDir == null) {
-      serverDir = FileIO.createDir("master")
+      serverDir = FileIO.createDir("/master")
     }
   }
 
@@ -135,8 +135,14 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
               }
             }
             future.onComplete{
-              case Success(value) => state = MDIVIDE
-              case Failure(exception) => state = FAILED
+              case Success(value) => {
+                state = MDIVIDE
+                logger.info("[Dividing] Get all workers get ranges")
+              }
+              case Failure(exception) => {
+                state = FAILED
+                logger.info("[Dividing] Dividing is failed: " + exception)
+              }
             }
           }
         }
@@ -155,7 +161,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
     }
 
     override def startShuffle(request: StartShuffleRequest): Future[StartShuffleResponse] = {
-      assert(workers(request.workerId).state == WDIVIDE || workers(request.workerId).state == WSORT)
+      assert(workers(request.workerId).state == WSAMPLE || workers(request.workerId).state == WSORT)
       if (checkWorkersState(MDIVIDE, WSORT)) {
         state = MSHUFFLE
       }
