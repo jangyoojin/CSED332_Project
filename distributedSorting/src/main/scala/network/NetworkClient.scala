@@ -154,15 +154,15 @@ class NetworkClient(clientData: ClientData) {
 
   @tailrec
   final def requestShuffle(): Unit = {
-    logger.info("requestShuffle(): sending shuffleRequest to Master...")
-    val sortRequest = new SortRequest(workerId)
-    val sortResponse = blockingStub.sort(sortRequest)
-    sortResponse.status match {
+    logger.info("requestShuffle(): sending startShuffleRequest to Master...")
+    val startShuffleRequest = new StartShuffleRequest(workerId)
+    val startShuffleResponse = blockingStub.startShuffle(startShuffleRequest)
+    startShuffleResponse.status match {
       case Stat.SUCCESS => {
         logger.info("requestShuffle(): done!")
       }
       case Stat.FAILURE => {
-        logger.info("requestShuffle(): shuffleResponse's Stat is FAILURE")
+        logger.info("requestShuffle(): startShuffleResponse's Stat is FAILURE")
         throw new Exception
       }
       case _ => {
