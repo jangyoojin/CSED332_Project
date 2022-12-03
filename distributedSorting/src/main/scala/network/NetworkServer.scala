@@ -4,10 +4,12 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable.Map
 import scala.util.{Failure, Success}
+
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 import java.io.FileOutputStream
 import java.net._
+
 import io.grpc.stub.StreamObserver
 import io.grpc.{Server, ServerBuilder, Status}
 import message.connection._
@@ -39,7 +41,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       logger.info("NetworkServer shut down")
     }
     if (serverDir == null) {
-      serverDir = FileIO.createDir("master")
+      serverDir = FileIO.createDir("/master")
     }
   }
 
@@ -70,7 +72,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
   class ConnectionImpl() extends ConnectGrpc.Connect {
     override def start(request: StartRequest): Future[StartResponse] = {
       assert(state == MINIT)
-      logger.info(s"Start: Worker ${request.ip}:${request.port} send StartRequest")
+      logger.info(s"[start] Worker ${request.ip}:${request.port} send StartRequest")
       workers.synchronized {
         if (workers.size < workerNum) {
           workers(workers.size + 1) = new WorkerData(workers.size + 1, request.ip, request.port)
@@ -133,8 +135,14 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
               }
             }
             future.onComplete{
-              case Success(value) => state = MDIVIDE
-              case Failure(exception) => state = FAILED
+              case Success(value) => {
+                state = MDIVIDE
+                logger.info("[Dividing] Get all workers get ranges")
+              }
+              case Failure(exception) => {
+                state = FAILED
+                logger.info("[Dividing] Dividing is failed: " + exception)
+              }
             }
           }
         }
@@ -153,7 +161,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
     }
 
     override def startShuffle(request: StartShuffleRequest): Future[StartShuffleResponse] = {
-      assert(workers(request.workerId).state == WDIVIDE || workers(request.workerId).state == WSORT)
+      assert(workers(request.workerId).state == WSAMPLE || workers(request.workerId).state == WSORT)
       if (checkWorkersState(MDIVIDE, WSORT)) {
         state = MSHUFFLE
       }
@@ -161,7 +169,10 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
         workers.synchronized(workers(request.workerId).state == WSORT)
       }
       state match {
-        case MSHUFFLE => Future.successful(new StartShuffleResponse(Stat.SUCCESS))
+        case MSHUFFLE => {
+          logger.info(s"[startShuffle] Start shuffling")
+          Future.successful(new StartShuffleResponse(Stat.SUCCESS))
+        }
         case _ => Future.successful(new StartShuffleResponse(Stat.PROCESSING))
       }
     }
@@ -175,7 +186,10 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
         workers.synchronized(workers(request.workerId).state = WSHUFFLE)
       }
       state match {
-        case MSORT => Future.successful(new SortResponse(Stat.SUCCESS))
+        case MSORT => {
+          logger.info("[sort] All Workers is sorted")
+          Future.successful(new SortResponse(Stat.SUCCESS))
+        }
         case _ => Future.successful(new SortResponse(Stat.PROCESSING))
       }
     }
