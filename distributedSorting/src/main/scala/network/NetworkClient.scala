@@ -223,7 +223,7 @@ class NetworkClient(clientData: ClientData) {
   def stopFileServer(): Unit = {
     logger.info("stopFileServer(): stopping FileServer...")
     if (fileServer != null) {
-      fileServer.stop
+      fileServer.shutdownServer
       fileServer = null
     }
     logger.info("stopFileServer(): done!")
@@ -242,7 +242,7 @@ class NetworkClient(clientData: ClientData) {
   def shutdown(): Unit = {
     logger.info("shutdown(): When we pull up, you know it's a shutdown...")
     if (fileServer != null) {
-      fileServer.stop
+      fileServer.shutdownServer
       fileServer = null
     }
     if (sampleDir != null) {
