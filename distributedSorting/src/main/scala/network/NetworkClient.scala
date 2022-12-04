@@ -251,7 +251,6 @@ class NetworkClient(clientData: ClientData) {
     }
 
     /*
-
     if (sampleDir != null) {
       FileIO.deleteDir(sampleDir)
     }
@@ -261,6 +260,8 @@ class NetworkClient(clientData: ClientData) {
     if (shuffledDir != null) {
       FileIO.deleteDir(shuffledDir)
     }
+
+
     if (subpartitionedDir != null) {
       FileIO.deleteDir(subpartitionedDir)
     }
