@@ -166,7 +166,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
         state = MSHUFFLE
       }
       if (workers(request.workerId).state == WSAMPLE) {
-        workers.synchronized(workers(request.workerId).state == WSORT)
+        workers.synchronized(workers(request.workerId).state = WSORT)
       }
       state match {
         case MSHUFFLE => {
