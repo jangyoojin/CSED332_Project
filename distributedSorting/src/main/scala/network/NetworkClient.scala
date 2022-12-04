@@ -177,11 +177,9 @@ class NetworkClient(clientData: ClientData) {
     // Worker 본인을 위한 파일 shuffledDir로 옮기기
     val partitionedFileListForMe = FileIO.getFile(partitionedDir, s"partition-$workerId")
     for (file <- partitionedFileListForMe) {
-      logger.info(file.getAbsolutePath)
-      logger.info(partitionedDir + s"\\partition-$workerId")
-      logger.info(shuffledDir + s"\\shuffle-$workerId")
-      val shuffledFile = new File(file.getAbsolutePath.replaceFirst("partitionedDir/"+s"partition-$workerId", s"shuffledDir/shuffle-$workerId"))
-//      val shuffledFile = new File(shuffledDir + s"\\shuffle-$workerId")
+      val shuffledFilePath = file.getAbsolutePath.replaceFirst("partitionedDir", "shuffledDir").replaceFirst(s"partition-$workerId", s"shuffle-$workerId")
+//      logger.info(shuffledFilePath)
+      val shuffledFile = new File(shuffledFilePath)
       assert(!shuffledFile.exists)
       file.renameTo(shuffledFile) // 이때 shufflledDir 가 존재하지 않는다면 에러가 발생함!!
     }
