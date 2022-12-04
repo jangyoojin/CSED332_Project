@@ -20,7 +20,6 @@ message SampleRequest
   int32 workerId = 1; //workerId
   int32 inputFileNum = 2; //worker's inputFileNum
   bytes data= 3; // sampling data
-
 }
 
 message SampleResponse
