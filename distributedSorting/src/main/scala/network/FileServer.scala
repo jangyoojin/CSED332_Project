@@ -54,7 +54,7 @@ class FileServer(executionContext: ExecutionContext,port:Int,id:Int,tempDir:Stri
       override def onNext(fileRequest :FileRequest)
       ={
         if (firstChecking){
-          logger.info("First trying to shuffle, so we need to make File..")
+          //logger.info("First trying to shuffle, so we need to make File..")
           val file = FileIO.createFile(tempDir,s"shuffle-${fileRequest.workerId}-${fileRequest.partitionId}")
           fos = new FileOutputStream(file)
           firstChecking=false
