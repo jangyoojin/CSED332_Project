@@ -2,19 +2,12 @@ package network
 import message.shuffle.{FileRequest, FileResponse, ShuffleGrpc}
 import message.utils.Stat
 import utils.FileIO
-import com.google.protobuf.ByteString
-
-import java.io.{BufferedWriter, File, FileOutputStream, FileWriter}
-import scala.io.Source
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Promise}
-import scala.concurrent.duration._
+import java.io.FileOutputStream
+import scala.concurrent.ExecutionContext
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
-import io.grpc.{ManagedChannelBuilder, Status}
 import io.grpc.stub.StreamObserver
-import io.grpc.{Server, ServerBuilder, Status}
+import io.grpc.{Server, ServerBuilder}
 
 
 
@@ -45,7 +38,7 @@ class FileServer(executionContext: ExecutionContext,port:Int,id:Int,tempDir:Stri
   class ShuffleImpl extends ShuffleGrpc.Shuffle
   {
     override def shuffle(responseObserver: StreamObserver[FileResponse]):StreamObserver[FileRequest]={
-    val serviceCompanion= new StreamObserver[FileRequest]{
+    val fileServer= new StreamObserver[FileRequest]{
       var firstChecking=true
       var fos :FileOutputStream=null
       override def onError(t:Throwable) ={
@@ -53,13 +46,12 @@ class FileServer(executionContext: ExecutionContext,port:Int,id:Int,tempDir:Stri
       }
       override def onNext(fileRequest :FileRequest)
       ={
-        if (firstChecking){
+        if (firstChecking) {
           //logger.info("First trying to shuffle, so we need to make File..")
-          val file = FileIO.createFile(tempDir,s"shuffle-${fileRequest.workerId}-${fileRequest.partitionId}")
+          val file = FileIO.createFile(tempDir, s"shuffle-${fileRequest.workerId}-${fileRequest.partitionId}")
           fos = new FileOutputStream(file)
-          firstChecking=false
+          firstChecking = false
         }
-        logger.info("Shuffling is processing")
         fileRequest.data.writeTo(fos)
         fos.flush()
       }
@@ -72,7 +64,7 @@ class FileServer(executionContext: ExecutionContext,port:Int,id:Int,tempDir:Stri
         responseObserver.onCompleted()
       }
     }
-    serviceCompanion
+    fileServer
     }
 
   }

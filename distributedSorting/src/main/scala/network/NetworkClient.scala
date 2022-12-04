@@ -177,12 +177,13 @@ class NetworkClient(clientData: ClientData) {
     // Worker 본인을 위한 파일 shuffledDir로 옮기기
     val partitionedFileListForMe = FileIO.getFile(partitionedDir, s"partition-$workerId")
     for (file <- partitionedFileListForMe) {
-      val shuffledFile1 = file.getAbsolutePath.replaceFirst("partitionedDir", "shuffledDir")
-      val shuffledFile = new File(shuffledFile1.replaceFirst("partition","shuffle" ))
-      //val shuffledFile = new File(file.getAbsolutePath.replaceFirst(partitionedDir + s"/partition-$workerId", shuffledDir + s"/shuffle-$workerId"))
+      val shuffledFilePath = file.getAbsolutePath.replaceFirst("partitionedDir", "shuffledDir").replaceFirst(s"partition-$workerId", s"shuffle-$workerId")
+//      logger.info(shuffledFilePath)
+      val shuffledFile = new File(shuffledFilePath)
       assert(!shuffledFile.exists)
       file.renameTo(shuffledFile) // 이때 shufflledDir 가 존재하지 않는다면 에러가 발생함!!
     }
+    logger.info("shuffle(): self rename done")
 
     // 다른 Worker 들에게 partitionedFile 보내주기
     val workerIdList = (1 to totalWorkerNum).toList
@@ -239,6 +240,7 @@ class NetworkClient(clientData: ClientData) {
   }
   def sort(): Unit = {
     logger.info("sort(): sorting...")
+    logger.info(clientData.outputDirPath)
     Sorter.sort(subpartitionedDir, clientData.outputDirPath)
     logger.info("sort(): done!")
   }
@@ -248,6 +250,9 @@ class NetworkClient(clientData: ClientData) {
       fileServer.shutdownServer
       fileServer = null
     }
+
+    /*
+
     if (sampleDir != null) {
       FileIO.deleteDir(sampleDir)
     }
@@ -260,6 +265,8 @@ class NetworkClient(clientData: ClientData) {
     if (subpartitionedDir != null) {
       FileIO.deleteDir(subpartitionedDir)
     }
+
+    */
 
     if (workerId != -1) {
       val terminateRequest = new TerminateRequest(workerId)

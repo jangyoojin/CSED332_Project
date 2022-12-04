@@ -3,7 +3,7 @@ package module
 import java.io.{File, FileOutputStream}
 import scala.io.Source
 
- import utils._
+import utils._
 
 object Sorter {
   /*  - inputDirPath는 input file들이 있는 directory의 path를 저장하고 있음
@@ -14,7 +14,7 @@ object Sorter {
     for {
       file <- unsortedFileList
     } {
-      sortEachFile(file.getPath, outputDirPath + file.getName)
+      sortEachFile(file.getPath, outputDirPath +"/"+ file.getName)
     }
   }
 

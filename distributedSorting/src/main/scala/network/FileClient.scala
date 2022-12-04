@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 
 import java.util.logging.Logger
 
-import io.grpc.{ManagedChannelBuilder, Status} //Status is not used(?)
+import io.grpc.ManagedChannelBuilder
 import io.grpc.stub.StreamObserver
 
 class FileClient(host: String, port: Int, id: Int, currentPath: String) {
@@ -30,59 +30,46 @@ class FileClient(host: String, port: Int, id: Int, currentPath: String) {
   def shuffleWithAllReceiver(shuffleId: Int): Unit = {
 
     for {
-      file<-FileIO.getFile(currentPath,s"partition-${shuffleId}")
-    }
-    {
-      logger.info("worker is requesting shuffle to another worker")
+      file <- FileIO.getFile(currentPath, s"partition-${shuffleId}")
+    } {
       val p = Promise[Unit]()
-      requestShuffle(file,p);
-      Await.ready(p.future,duration.Duration.Inf)
+      requestShuffle(file, p);
+      Await.ready(p.future, duration.Duration.Inf)
     }
   }
 
   def requestShuffle(file: File, shufflePromise: Promise[Unit]): Unit = {
-    val responseObserver = new StreamObserver[FileResponse] ()
-    {
-      override def onNext(response:FileResponse) :Unit = {
-        if (response.status == Stat.SUCCESS){
-          logger.info("ResponseObserver: Sending is succedded")
+    val responseObserver = new StreamObserver[FileResponse]() {
+      override def onNext(response: FileResponse): Unit = {
+        if (response.status == Stat.SUCCESS) {
           shufflePromise.success()
         }
 
       }
+
       override def onCompleted(): Unit = {
         logger.info("ResponseObserver : Done sending")
       }
 
       override def onError(t: Throwable): Unit = {
-        logger.info("ResponseObserver : Error is occured sending request")
         shufflePromise.failure(t)
       }
     }
     //from Server to Client
 
-    val requestObserver = asyncStub.shuffle(responseObserver)
-    try {
-      logger.info(" ...File client is requesting shuffle to FileServer...")
-      val srcLines = Source.fromFile(file).getLines()
-      val FileNameArray = file.getName.split('-')
-      val receiverId = FileNameArray(2).toInt
-      for ( line<- srcLines)
-      {
-        val sendingData=ByteString.copyFromUtf8(line)
-        val request = FileRequest(workerId=id,partitionId= receiverId, data=sendingData)
-        requestObserver.onNext(request)
-      }
+    val fileServer = asyncStub.shuffle(responseObserver)
+    val srcLines = Source.fromFile(file).getLines()
+    val FileNameArray = file.getName.split('-')
+    val receiverId = FileNameArray(2).toInt
+    for (line <- srcLines) {
+      val sendingData = ByteString.copyFromUtf8(line + "\r\n")
+      val request = FileRequest(workerId = id, partitionId = receiverId, data = sendingData)
+      fileServer.onNext(request)
     }
 
-   catch{
-     case t: Exception =>
-       {
-         logger.info("exception occured!")
-         requestObserver.onError(t)
-       }
-   }
-    requestObserver.onCompleted()
+
+    fileServer.onCompleted()
+
+    //from client to Server
   }
-  //from client to Server
 }
