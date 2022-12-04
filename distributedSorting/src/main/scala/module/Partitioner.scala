@@ -2,10 +2,13 @@ package module
 
 import java.io.{File, FileOutputStream}
 import scala.io.Source
+import java.util.logging.Logger
+
+import network.NetworkClient
 
 
 object Partitioner {
-
+  val logger = Logger.getLogger(classOf[NetworkClient].getName)
   def partition(inputDirPaths: Seq[String], partitionDirPath: String, partitioningPoints: Map[Int, (String, String)]): Any = {
     for {
       inputDirPath <- inputDirPaths
@@ -34,8 +37,8 @@ object Partitioner {
   }
 
   def partitionIntoRanges(inputFilePath: String, outputFilePath: String, outputFileNameTag: String, partitioningPoints: Map[Int, (String, String)]): Any = {
+    logger.info(s"Partitioner.partitionIntoRanges(): partitioningPoints is ${partitioningPoints}")
     val source = Source.fromFile(inputFilePath)
-
     for{
       (id, (lower, upper)) <- partitioningPoints // 여기서 id는 해당 range의 값을 담당하는 Reciever Worker의 id에 대응된다.
     } {
