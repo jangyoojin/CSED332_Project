@@ -251,7 +251,11 @@ class NetworkClient(clientData: ClientData) {
       fileServer = null
     }
 
-
+    logger.info("shutdown(): let's check each working dir path")
+    logger.info(s"shutdown(): sampleDir: ${sampleDir}")
+    logger.info(s"shutdown(): partitionedDir: ${partitionedDir}")
+    logger.info(s"shutdown(): shuffledDir: ${shuffledDir}")
+    logger.info(s"shutdown(): subpartitionedDir: ${subpartitionedDir}")
     if (sampleDir != null) {
       FileIO.deleteDir(sampleDir)
     }
