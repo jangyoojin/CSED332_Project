@@ -99,7 +99,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
           fileNum = value.inputFileNum
           //1. make a file to write the sample data in serverDir(: ./master/)
           if (file == null) {
-            file = new FileOutputStream(FileIO.createFile(serverDir, s"sample_${value.workerId}"))
+            file = new FileOutputStream(FileIO.createFile(serverDir, s"sample_$id"))
           }
           //2. write sample data of value(the request) to sample_00
           value.data.writeTo(file)
