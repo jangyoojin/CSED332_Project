@@ -250,7 +250,7 @@ class NetworkClient(clientData: ClientData) {
       fileServer = null
     }
 
-    /*
+
     if (sampleDir != null) {
       FileIO.deleteDir(sampleDir)
     }
@@ -261,12 +261,12 @@ class NetworkClient(clientData: ClientData) {
       FileIO.deleteDir(shuffledDir)
     }
 
-
+    /*
     if (subpartitionedDir != null) {
       FileIO.deleteDir(subpartitionedDir)
     }
-
     */
+
 
     if (workerId != -1) {
       val terminateRequest = new TerminateRequest(workerId)

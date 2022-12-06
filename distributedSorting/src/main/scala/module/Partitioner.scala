@@ -37,22 +37,30 @@ object Partitioner {
   }
 
   def partitionIntoRanges(inputFilePath: String, outputFilePath: String, outputFileNameTag: String, partitioningPoints: Map[Int, (String, String)]): Any = {
-    logger.info(s"Partitioner.partitionIntoRanges(): partitioningPoints is ${partitioningPoints}")
+//    logger.info(s"Partitioner.partitionIntoRanges(): partitioningPoints is ${partitioningPoints}")
     val source = Source.fromFile(inputFilePath)
-    for{
-      (id, (lower, upper)) <- partitioningPoints // 여기서 id는 해당 range의 값을 담당하는 Reciever Worker의 id에 대응된다.
-    } {
-      val linesToWrite = source.getLines.toList.filter(line => {
-        val keyOfLine = line.take(10)
-        keyOfLine >=lower && keyOfLine <= upper
-      })
-      writeLinesOnOutputFile(linesToWrite, outputFilePath + id + outputFileNameTag)
+    val inputLinesList = source.getLines.toList
+    try {
+      for {
+        (id, (lower, upper)) <- partitioningPoints // 여기서 id는 해당 range의 값을 담당하는 Reciever Worker의 id에 대응된다.
+      } {
+//        logger.info(s"Partitioner.partitionIntoRanges(): writeLines about id: ${id} , lower: ${lower} , upper: ${upper} ...")
+//        logger.info(s"Partitioner.partitionIntoRanges(): inputLinesList's length is ${inputLinesList.length}")
+        val linesToWrite = inputLinesList.filter(line => {
+          val keyOfLine = line.take(10)
+          keyOfLine >= lower && keyOfLine <= upper
+        })
+        writeLinesOnOutputFile(linesToWrite, outputFilePath + id + outputFileNameTag)
+      }
+    } catch {
+      case e: Exception => logger.warning(s"Partitioner.partitionIntoRanges(): exception occurs: ${e}")
     }
 
     source.close
   }
 
   def writeLinesOnOutputFile(linesToWrite: List[String], outputFilePath: String): Any = {
+//    logger.info(s"Partitioner.writeLinesOnOutputFile(): linesToWrite's length is ${linesToWrite.length}")
     val outputFile = new File(outputFilePath)
     val writer = new FileOutputStream(outputFile, outputFile.exists)
     for (line <- linesToWrite) {

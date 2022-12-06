@@ -12,13 +12,13 @@ object Sorter {
       - input file에 접근하여 sort를 진행하고 새로운 파일을 생성하여 outputDirPath에 해당하는 directory에 저장 */
   val logger = Logger.getLogger(classOf[NetworkClient].getName)
   def sort(inputDirPath: String, outputDirPath: String): Any = {
-    logger.info("Sorter.sort(): start to sort")
+//    logger.info("Sorter.sort(): start to sort")
     // 은하가 구현한 FileIO.getFile 함수 이용 import utils._
     val unsortedFileList = FileIO.getFile(inputDirPath, "")
     for {
       file <- unsortedFileList
     } {
-      logger.info(s"Sorter.sort(): sort file: ${file.getName}")
+//      logger.info(s"Sorter.sort(): sort file: ${file.getName}")
       sortEachFile(file.getPath, outputDirPath + "/"+ file.getName)
     }
   }
