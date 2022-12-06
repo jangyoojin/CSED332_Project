@@ -262,11 +262,9 @@ class NetworkClient(clientData: ClientData) {
       FileIO.deleteDir(shuffledDir)
     }
 
-    /*
     if (subpartitionedDir != null) {
       FileIO.deleteDir(subpartitionedDir)
     }
-    */
 
 
     if (workerId != -1) {
