@@ -45,10 +45,6 @@ object FileIO
     val dir = new File(path)
     val tempFile = File.createTempFile(prefix, "", dir)
     tempFile
-//    val filename= path+prefix
-//    var dir = new File(filename)
-//    dir.createNewFile()
-//    dir
   }
 
 }

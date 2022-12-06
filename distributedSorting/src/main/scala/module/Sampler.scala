@@ -12,6 +12,7 @@ object Sampler {
     val logger = Logger.getLogger(classOf[NetworkClient].getName)
     logger.warning(s"inputDirPath is ${inputDirPath}")
     val inputDir = new File(inputDirPath)
+    assert(inputDir.isDirectory)
     val headFile = inputDir.listFiles.filter(_.isFile).toList.head
     val source = Source.fromFile(headFile)
     val sampleFileName = sampleDirPath + "/sample"

@@ -27,9 +27,8 @@ object Sorter {
     // val inputFile = new File(inputFilePath)
     val inputSource = Source.fromFile(inputFilePath)
     val unsortedLineList = inputSource.getLines.toList
-
     val sortedLineList = unsortedLineList.sortWith((line1, line2) => compareLines(line1, line2))
-
+      //unsortedLineList
     val outputFile = new File(outputFilePath)
     val fos = new FileOutputStream(outputFile, outputFile.exists)
     for (line <- sortedLineList) {

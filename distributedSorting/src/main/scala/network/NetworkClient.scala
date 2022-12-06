@@ -240,6 +240,7 @@ class NetworkClient(clientData: ClientData) {
   }
   def sort(): Unit = {
     logger.info("sort(): sorting...")
+    logger.info(clientData.outputDirPath)
     Sorter.sort(subpartitionedDir, clientData.outputDirPath)
     logger.info("sort(): done!")
   }
