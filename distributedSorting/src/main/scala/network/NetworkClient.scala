@@ -240,7 +240,15 @@ class NetworkClient(clientData: ClientData) {
   }
   def sort(): Unit = {
     logger.info("sort(): sorting...")
-    logger.info(clientData.outputDirPath)
+//    logger.info(clientData.outputDirPath)
+    // 기존에 이전 테스트 output 파일들 존재하는 경우 output 파일들 삭제
+    val outputDir = new File(clientData.outputDirPath)
+    assert(outputDir.isDirectory)
+    for (outputFile <- FileIO.getFile(clientData.outputDirPath, null)) {
+      assert(outputFile.isFile)
+      outputFile.delete
+    }
+      // 그 다음에 sort 시작~
     Sorter.sort(subpartitionedDir, clientData.outputDirPath)
     logger.info("sort(): done!")
   }
