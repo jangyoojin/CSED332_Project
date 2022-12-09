@@ -46,11 +46,21 @@ object Partitioner {
       } {
 //        logger.info(s"Partitioner.partitionIntoRanges(): writeLines about id: ${id} , lower: ${lower} , upper: ${upper} ...")
 //        logger.info(s"Partitioner.partitionIntoRanges(): inputLinesList's length is ${inputLinesList.length}")
-        val linesToWrite = inputLinesList.filter(line => {
-          val keyOfLine = line.take(10)
-          keyOfLine >= lower && keyOfLine <= upper
-        })
-        writeLinesOnOutputFile(linesToWrite, outputFilePath + id + outputFileNameTag)
+        if(upper == "~~~~~~~~~~") {
+          val linesToWrite = inputLinesList.filter(line => {
+            val keyOfLine = line.take(10)
+            keyOfLine >= lower && keyOfLine <= upper
+          })
+          writeLinesOnOutputFile(linesToWrite, outputFilePath + id + outputFileNameTag)
+        }
+        else {
+          val linesToWrite = inputLinesList.filter(line => {
+            val keyOfLine = line.take(10)
+            keyOfLine >= lower && keyOfLine < upper
+          })
+          writeLinesOnOutputFile(linesToWrite, outputFilePath + id + outputFileNameTag)
+        }
+
       }
     } catch {
       case e: Exception => logger.warning(s"Partitioner.partitionIntoRanges(): exception occurs: ${e}")
