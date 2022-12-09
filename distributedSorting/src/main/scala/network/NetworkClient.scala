@@ -264,19 +264,19 @@ class NetworkClient(clientData: ClientData) {
     logger.info(s"shutdown(): shuffledDir: ${shuffledDir}")
     logger.info(s"shutdown(): subpartitionedDir: ${subpartitionedDir}")
 
-//    if (sampleDir != null) {
-//      FileIO.deleteDir(sampleDir)
-//    }
-//    if (partitionedDir != null) {
-//      FileIO.deleteDir(partitionedDir)
-//    }
-//    if (shuffledDir != null) {
-//      FileIO.deleteDir(shuffledDir)
-//    }
-//
-//    if (subpartitionedDir != null) {
-//      FileIO.deleteDir(subpartitionedDir)
-//    }
+    if (sampleDir != null) {
+      FileIO.deleteDir(sampleDir)
+    }
+    if (partitionedDir != null) {
+      FileIO.deleteDir(partitionedDir)
+    }
+    if (shuffledDir != null) {
+      FileIO.deleteDir(shuffledDir)
+    }
+
+    if (subpartitionedDir != null) {
+      FileIO.deleteDir(subpartitionedDir)
+    }
 
     if (workerId != -1) {
       val terminateRequest = new TerminateRequest(workerId)
