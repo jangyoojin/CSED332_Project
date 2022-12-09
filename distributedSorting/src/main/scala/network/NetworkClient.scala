@@ -240,7 +240,15 @@ class NetworkClient(clientData: ClientData) {
   }
   def sort(): Unit = {
     logger.info("sort(): sorting...")
-    logger.info(clientData.outputDirPath)
+//    logger.info(clientData.outputDirPath)
+    // 기존에 이전 테스트 output 파일들 존재하는 경우 output 파일들 삭제
+    val outputDir = new File(clientData.outputDirPath)
+    assert(outputDir.isDirectory)
+    for (outputFile <- FileIO.getFile(clientData.outputDirPath, null)) {
+      assert(outputFile.isFile)
+      outputFile.delete
+    }
+      // 그 다음에 sort 시작~
     Sorter.sort(subpartitionedDir, clientData.outputDirPath)
     logger.info("sort(): done!")
   }
@@ -250,7 +258,11 @@ class NetworkClient(clientData: ClientData) {
       fileServer.shutdownServer
       fileServer = null
     }
-
+    logger.info("shutdown(): let's check each working dir path")
+    logger.info(s"shutdown(): sampleDir: ${sampleDir}")
+    logger.info(s"shutdown(): partitionedDir: ${partitionedDir}")
+    logger.info(s"shutdown(): shuffledDir: ${shuffledDir}")
+    logger.info(s"shutdown(): subpartitionedDir: ${subpartitionedDir}")
 
 //    if (sampleDir != null) {
 //      FileIO.deleteDir(sampleDir)
@@ -265,7 +277,6 @@ class NetworkClient(clientData: ClientData) {
 //    if (subpartitionedDir != null) {
 //      FileIO.deleteDir(subpartitionedDir)
 //    }
-
 
     if (workerId != -1) {
       val terminateRequest = new TerminateRequest(workerId)
