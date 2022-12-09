@@ -44,7 +44,7 @@ object Divider {
     //pivot으로 range 만들기
     val minString = " " * 10
     val maxString = "~" * 10
-    val totalPivots = minString +: pivots :+ maxString
+    val totalPivots = minString  +: pivots :+ maxString
     val ranges = (for {
       twoPivots <- totalPivots.sliding(2).toSeq
     } yield (twoPivots(0), twoPivots(1))).grouped(fileRangeNum)
