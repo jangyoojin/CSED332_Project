@@ -79,6 +79,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
           if (workers.size == workerNum) {
             state = MSTART
           }
+          logger.info(s"[start] Send StartResponse to Worker${workers.size}")
           Future.successful(new StartResponse(workers.size))
         } else {
           Future.failed(new Exception("[start] there are too many workers"))
