@@ -27,6 +27,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
   var serverDir: String = null
 
   val workers = Map[Int, WorkerData]()
+  var workersIP: String = "Workers IP address:"
 
   /*--------------method for Master lifecycle-------------------*/
   def open(): Unit = {
@@ -73,9 +74,12 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       workers.synchronized {
         if (workers.size < workerNum) {
           workers(workers.size + 1) = new WorkerData(workers.size + 1, request.ip, request.port)
-          if (workers.size == workerNum) {
+          workers(workers.size).state = WSTART
+          workersIP = workersIP + " " + request.ip
+          if (checkWorkersState(MINIT, WSTART)) {
             state = MSTART
           }
+          if (checkWorkersState(MSTART, WSTART)) println(workersIP)
           logger.info(s"[start] Send StartResponse to Worker${workers.size}")
           Future.successful(new StartResponse(workers.size))
         } else {

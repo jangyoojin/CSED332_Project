@@ -9,23 +9,8 @@ class SortingTest extends AnyFunSuite {
   test("sort") {
     var i = 0
     val fileList = FileIO.getFile("/home/pink/64/output", null)
-//    for (file <- fileList) {
-//      bytes += Files.size(Paths.get(path + file.getName)).toInt
-//      assert(sort(file) == true)
-//      i = i + 1
-//    }
     assert(sort(fileList))
   }
-
-//  def sort(file: File): Boolean = {
-//    var result = true
-//    val prev = " " * 10
-//    val srcLines = Source.fromFile(file).getLines()
-//    for (line <- srcLines) {
-//      if (line.substring(0, 10) < prev) result = false
-//    }
-//    result
-//  }
 
   def sort(fileList: List[File]): Boolean = {
     var bytes = 0
