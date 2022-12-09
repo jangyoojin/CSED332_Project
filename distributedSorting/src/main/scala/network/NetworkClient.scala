@@ -147,9 +147,9 @@ class NetworkClient(clientData: ClientData) {
 
   def startFileServer(): Unit = {
     logger.info("startFileServer(): starting FileServer...")
-    fileServer = new FileServer(ExecutionContext.global, clientData.shuffleServerPort, workerId, partitionedDir)
-    fileServer.start
     shuffledDir = FileIO.createDir("shuffledDir")
+    fileServer = new FileServer(ExecutionContext.global, clientData.shuffleServerPort, workerId, shuffledDir)
+    fileServer.start
     logger.info("startFileServer(): done!")
   }
 
