@@ -1,4 +1,4 @@
-package main
+package network
 
 import utils.FileIO
 
@@ -7,7 +7,7 @@ import java.nio.file.{Files, Paths}
 import scala.io.Source
 
 object SortingTest {
-  def main(): Unit = {
+  def main(args: Array[String]): Unit = {
     var bytes = 0
     var i = 0
     val path = "/home/pink/64/output"
