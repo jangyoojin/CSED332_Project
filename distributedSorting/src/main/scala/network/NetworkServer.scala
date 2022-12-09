@@ -47,10 +47,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
 
   def shutdownServer(): Unit = {
     if (server != null) {
-      server.shutdown
-      if(!server.awaitTermination(5, TimeUnit.SECONDS)) {
-        server.shutdownNow() //fail shutdown while 5 seconds, shutdown now
-      }
+      server.shutdown.awaitTermination(5000, TimeUnit.MILLISECONDS)
     }
     if (serverDir != null) FileIO.deleteDir(serverDir)
   }
