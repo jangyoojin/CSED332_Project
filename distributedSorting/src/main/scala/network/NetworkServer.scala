@@ -76,10 +76,10 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
           workers(workers.size + 1) = new WorkerData(workers.size + 1, request.ip, request.port)
           workers(workers.size).state = WSTART
           workersIP = workersIP + " " + request.ip
-          if (checkWorkersState(MINIT, WSTART)) {
+          if (workers.size == workerNum) {
             state = MSTART
           }
-          if (checkWorkersState(MSTART, WSTART)) println(workersIP)
+          if (workers.size == workerNum) println(workersIP)
           logger.info(s"[start] Send StartResponse to Worker${workers.size}")
           Future.successful(new StartResponse(workers.size))
         } else {
