@@ -117,4 +117,8 @@ Then the SortingTest that we made show whether the sorting is correctly done in 
 <img width="510" alt="스크린샷 2022-12-10 오후 5 35 20" src="https://user-images.githubusercontent.com/85989698/206841376-6dc2cc1f-ba70-43c3-935b-86749e5ec2da.png">
 
 
-We can 
+We can check the sampling / partitioning/ shuffling / subpartitioning is well going with checking the temp directory.
+You can check the individual process is well going in our progress notion of week 8.  
+https://large-drain-0aa.notion.site/8th-week-b8c4ab5e540e423c9fb2505674ad106d
+
+
