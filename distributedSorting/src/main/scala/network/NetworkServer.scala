@@ -28,6 +28,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
 
   val workers = Map[Int, WorkerData]()
   var workersIP: String = "Workers IP address:"
+  var total_bytes=0;
 
   /*--------------method for Master lifecycle-------------------*/
   def open(): Unit = {
@@ -197,14 +198,14 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
     }
 
     override def terminate(request: TerminateRequest): Future[TerminateResponse] = {
-      var total=0;
+
       workers.synchronized( {
         workers(request.workerId).state = WTERMINATE
-        total+=request.bytesAmount
+        total_bytes+=request.bytesAmount
         if (checkWorkersState(MSORT, WTERMINATE)) {
           logger.info(s"[terminate] All Workers terminated. Master terminate")
           state = MTERMINATE
-          println("Total output bytes is "+ total)
+          println("Total output bytes is "+ total_bytes)
           shutdownServer()
         }
       })
