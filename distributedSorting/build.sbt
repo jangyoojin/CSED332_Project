@@ -21,3 +21,5 @@ libraryDependencies ++= Seq(
   "io.grpc" % "grpc-stub" % scalapb.compiler.Version.grpcJavaVersion
 )
 
+PB.protocVersion := "3.17.3"
+

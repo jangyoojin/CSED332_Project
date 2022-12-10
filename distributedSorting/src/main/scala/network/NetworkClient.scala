@@ -16,7 +16,7 @@ import java.io.File
 import scala.annotation.tailrec
 import scala.io.Source
 import java.util.concurrent.TimeUnit
-
+import java.nio.file.{Files, Paths}
 
 class ClientData (
                    val inputDirPaths: Seq[String],
@@ -259,22 +259,29 @@ class NetworkClient(clientData: ClientData) {
       fileServer = null
     }
 
-//    if (sampleDir != null) {
-//      FileIO.deleteDir(sampleDir)
-//    }
-//    if (partitionedDir != null) {
-//      FileIO.deleteDir(partitionedDir)
-//    }
-//    if (shuffledDir != null) {
-//      FileIO.deleteDir(shuffledDir)
-//    }
-//
-//    if (subpartitionedDir != null) {
-//      FileIO.deleteDir(subpartitionedDir)
-//    }
+ if (sampleDir != null) {
+     FileIO.deleteDir(sampleDir)
+    }
+   if (partitionedDir != null) {
+     FileIO.deleteDir(partitionedDir)
+    }
+   if (shuffledDir != null) {
+     FileIO.deleteDir(shuffledDir)
+    }
+
+   if (subpartitionedDir != null) {
+    FileIO.deleteDir(subpartitionedDir)
+    }
+
+    val path = clientData.outputDirPath
+    val fileList = FileIO.getFile(path, null)
+    var bytes=0
+    for (file <- fileList) {
+      bytes += Files.size(Paths.get(path+'/' + file.getName)).toInt
+    }
 
     if (workerId != -1) {
-      val terminateRequest = new TerminateRequest(workerId)
+      val terminateRequest = new TerminateRequest(workerId, bytes)
       val terminateResponse = blockingStub.terminate(terminateRequest)
       workerId = -1
       channel.shutdown.awaitTermination(5000, TimeUnit.MILLISECONDS)

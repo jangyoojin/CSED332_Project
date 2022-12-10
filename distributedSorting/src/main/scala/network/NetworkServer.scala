@@ -197,11 +197,14 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
     }
 
     override def terminate(request: TerminateRequest): Future[TerminateResponse] = {
+      var total=0;
       workers.synchronized( {
         workers(request.workerId).state = WTERMINATE
+        total+=request.bytesAmount
         if (checkWorkersState(MSORT, WTERMINATE)) {
           logger.info(s"[terminate] All Workers terminated. Master terminate")
           state = MTERMINATE
+          println("Total output bytes is "+ total)
           shutdownServer()
         }
       })

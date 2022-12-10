@@ -1,11 +1,21 @@
+import module.Parser
+import network.NetworkClient
+import network.NetworkServer
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+
 import utils.FileIO
 import org.scalatest.funsuite.AnyFunSuite
+
 import java.io.File
 import java.nio.file.{Files, Paths}
 import scala.io.Source
 
 
+
 class SortingTest extends AnyFunSuite {
+
+  var bytes=0
   test("sort") {
     var i = 0
     val fileList = FileIO.getFile("/home/pink/64/output", null)
@@ -13,7 +23,6 @@ class SortingTest extends AnyFunSuite {
   }
 
   def sort(fileList: List[File]): Boolean = {
-    var bytes = 0
     val path = "/home/pink/64/output/"
     var result = true
     var prev = " " * 10
@@ -29,4 +38,9 @@ class SortingTest extends AnyFunSuite {
     result
   }
 
+  //마스터 열고 마스터에 값 저
+
+
 }
+
+

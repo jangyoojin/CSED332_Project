@@ -64,10 +64,13 @@ message SortResponse
 message TerminateRequest
 {
   int32 workerId = 1;
+  int32 bytesAmount = 2;
+
 }
 
 message TerminateResponse
 {}
+
 
 service Connect
 {
