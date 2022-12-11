@@ -51,7 +51,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
     if (server != null) {
       server.shutdown.awaitTermination(5000, TimeUnit.MILLISECONDS)
     }
-//    if (serverDir != null) FileIO.deleteDir(serverDir)
+   if (serverDir != null) FileIO.deleteDir(serverDir)
   }
 
   def waitUntilShutdown(): Unit = {
@@ -205,7 +205,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
         if (checkWorkersState(MSORT, WTERMINATE)) {
 //          logger.info(s"[terminate] All Workers terminated. Master terminate")
           state = MTERMINATE
-          println("Total output bytes is "+ total_bytes)
+          //println("Total output bytes is "+ total_bytes)
           shutdownServer()
         }
       })
