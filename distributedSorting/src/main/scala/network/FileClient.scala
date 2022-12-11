@@ -48,7 +48,7 @@ class FileClient(host: String, port: Int, id: Int, currentPath: String) {
       }
 
       override def onCompleted(): Unit = {
-        logger.info("ResponseObserver : Done sending")
+//        logger.info("ResponseObserver : Done sending")
       }
 
       override def onError(t: Throwable): Unit = {

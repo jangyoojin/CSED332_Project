@@ -4,13 +4,13 @@ import network.NetworkClient
 
 import scala.io.Source
 import java.io.{File, FileOutputStream}
-import java.util.logging.Logger
+//import java.util.logging.Logger
 
 
 object Sampler {
   def sample(inputDirPath: String, sampleDirPath: String, sampleSize: Int): Unit = {
-    val logger = Logger.getLogger(classOf[NetworkClient].getName)
-    logger.warning(s"inputDirPath is ${inputDirPath}")
+//    val logger = Logger.getLogger(classOf[NetworkClient].getName)
+//    logger.warning(s"inputDirPath is ${inputDirPath}")
     val inputDir = new File(inputDirPath)
     assert(inputDir.isDirectory)
     val headFile = inputDir.listFiles.filter(_.isFile).toList.head

@@ -57,7 +57,7 @@ class FileServer(executionContext: ExecutionContext,port:Int,id:Int,tempDir:Stri
       }
 
       override def onCompleted(): Unit = {
-        logger.info("requestObserver : finished receiving all files from FileClient")
+//        logger.info("requestObserver : finished receiving all files from FileClient")
         fos.close()
         val response=new FileResponse(Stat.SUCCESS)
         responseObserver.onNext(response)

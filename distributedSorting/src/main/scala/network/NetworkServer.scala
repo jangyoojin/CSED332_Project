@@ -36,11 +36,11 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       .addService(ConnectGrpc.bindService(new ConnectionImpl, executionContext))
       .build
       .start
-    logger.info("Server started, listening on " + port)
+//    logger.info("Server started, listening on " + port)
     println(s"${InetAddress.getLocalHost.getHostAddress}:${port}")
     sys.addShutdownHook {
       self.shutdownServer()
-      logger.info("NetworkServer shut down")
+//      logger.info("NetworkServer shut down")
     }
     if (serverDir == null) {
       serverDir = FileIO.createDir("/master")
@@ -71,7 +71,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
   class ConnectionImpl() extends ConnectGrpc.Connect {
     override def start(request: StartRequest): Future[StartResponse] = {
       assert(state == MINIT)
-      logger.info(s"[start] Worker ${request.ip}:${request.port} send StartRequest")
+//      logger.info(s"[start] Worker ${request.ip}:${request.port} send StartRequest")
       workers.synchronized {
         if (workers.size < workerNum) {
           workers(workers.size + 1) = new WorkerData(workers.size + 1, request.ip, request.port)
@@ -81,7 +81,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
             state = MSTART
           }
           if (workers.size == workerNum) println(workersIP)
-          logger.info(s"[start] Send StartResponse to Worker${workers.size}")
+//          logger.info(s"[start] Send StartResponse to Worker${workers.size}")
           Future.successful(new StartResponse(workers.size))
         } else {
           Future.failed(new Exception("[start] there are too many workers"))
@@ -92,7 +92,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
     override def sample(request: StreamObserver[SampleResponse]): StreamObserver[SampleRequest] = {
       assert(serverDir != null)
       assert(state == MINIT || state == MSTART)
-      logger.info("[sample] Worker send sample")
+//      logger.info("[sample] Worker send sample")
       new StreamObserver[SampleRequest] {
         var id = -1
         var fileNum = 0
@@ -113,7 +113,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
           throw t
         }
         override def onCompleted(): Unit = {
-          logger.info(s"[sample] Worker $id done")
+//          logger.info(s"[sample] Worker $id done")
           file.close
           request.onNext(new SampleResponse(status = Stat.SUCCESS))
           request.onCompleted()
@@ -124,7 +124,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
 
           /*------Start dividing: make ranges------------*/
           if(checkWorkersState(MSTART, WSAMPLE)) {
-            logger.info(s"[divide] All workers send sample data so start dividing")
+//            logger.info(s"[divide] All workers send sample data so start dividing")
             val future = Future {
               val fileRangeNum = workers.map{case (id, worker) => worker.fileNum}.sum / workerNum
               val ranges = Divider.getRange(serverDir, workerNum, fileRangeNum)
@@ -140,7 +140,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
             future.onComplete{
               case Success(value) => {
                 state = MDIVIDE
-                logger.info("[Dividing] Get all workers get ranges")
+//                logger.info("[Dividing] Get all workers get ranges")
               }
               case Failure(exception) => {
                 state = FAILED
@@ -173,7 +173,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       }
       state match {
         case MSHUFFLE => {
-          logger.info(s"[startShuffle] Start shuffling")
+//          logger.info(s"[startShuffle] Start shuffling")
           Future.successful(new StartShuffleResponse(Stat.SUCCESS))
         }
         case _ => Future.successful(new StartShuffleResponse(Stat.PROCESSING))
@@ -190,7 +190,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
       }
       state match {
         case MSORT => {
-          logger.info("[sort] All Workers is sorted")
+//          logger.info("[sort] All Workers is sorted")
           Future.successful(new SortResponse(Stat.SUCCESS))
         }
         case _ => Future.successful(new SortResponse(Stat.PROCESSING))
@@ -203,7 +203,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
         workers(request.workerId).state = WTERMINATE
         total_bytes+=request.bytesAmount
         if (checkWorkersState(MSORT, WTERMINATE)) {
-          logger.info(s"[terminate] All Workers terminated. Master terminate")
+//          logger.info(s"[terminate] All Workers terminated. Master terminate")
           state = MTERMINATE
           println("Total output bytes is "+ total_bytes)
           shutdownServer()
