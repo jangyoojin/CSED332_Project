@@ -157,6 +157,7 @@ class NetworkServer(executionContext: ExecutionContext, port:Int, workerNum: Int
         def convertWorkersTOMessage(): Seq[workerInfo] = {
           (workers map {case (id, worker) => WorkerData.workerDataToMessage(worker)}).toSeq
         }
+        logger.info(s"[divide] Send ranges to Worker${request.workerId}: ${workers(request.workerId).mainRange}")
         Future.successful(new DivideResponse(Stat.SUCCESS, workerNum, convertWorkersTOMessage))
       }
       case FAILED => Future.failed(new Exception("[divide] Fail to dividing"))

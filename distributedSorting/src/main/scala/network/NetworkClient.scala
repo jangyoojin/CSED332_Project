@@ -259,19 +259,19 @@ class NetworkClient(clientData: ClientData) {
       fileServer = null
     }
 
- if (sampleDir != null) {
-     FileIO.deleteDir(sampleDir)
-    }
-   if (partitionedDir != null) {
-     FileIO.deleteDir(partitionedDir)
-    }
-   if (shuffledDir != null) {
-     FileIO.deleteDir(shuffledDir)
-    }
-
-   if (subpartitionedDir != null) {
-    FileIO.deleteDir(subpartitionedDir)
-    }
+// if (sampleDir != null) {
+//     FileIO.deleteDir(sampleDir)
+//    }
+//   if (partitionedDir != null) {
+//     FileIO.deleteDir(partitionedDir)
+//    }
+//   if (shuffledDir != null) {
+//     FileIO.deleteDir(shuffledDir)
+//    }
+//
+//   if (subpartitionedDir != null) {
+//    FileIO.deleteDir(subpartitionedDir)
+//    }
 
     val path = clientData.outputDirPath
     val fileList = FileIO.getFile(path, null)
